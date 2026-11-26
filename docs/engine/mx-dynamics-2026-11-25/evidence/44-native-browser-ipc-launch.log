@@ -1,0 +1,60 @@
+2026-11-25T23:12:42.753Z pw:api => browserType.launch started
+2026-11-25T23:12:42.901Z pw:api <= browserType.launch failed
+Error: browserType.launch: Target page, context or browser has been closed
+Browser logs:
+
+<launching> /home/agent/motobound-579b454ae846/test-results/agent44/playwright-cache/chromium-1193/chrome-linux/chrome --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-extensions --disable-features=AcceptCHFrame,AvoidUnnecessaryBeforeUnloadCheckSync,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,Translate,AutoDeElevate --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --edge-skip-compat-layer-relaunch --enable-automation --headless --hide-scrollbars --mute-audio --blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4 --no-sandbox --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --user-data-dir=/tmp/playwright_chromiumdev_profile-hZrp4w --remote-debugging-pipe --no-startup-window
+<launched> pid=63
+[pid=63][err] [63:63:1125/161242.891465:FATAL:chrome/browser/process_singleton_posix.cc:292] Check failed: . socket() failed: Operation not permitted (1)
+[pid=63][err] [1125/161242.891777:ERROR:third_party/crashpad/crashpad/util/linux/scoped_ptrace_attach.cc:27] ptrace: Operation not permitted (1)
+Call log:
+[2m  - <launching> /home/agent/motobound-579b454ae846/test-results/agent44/playwright-cache/chromium-1193/chrome-linux/chrome --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-extensions --disable-features=AcceptCHFrame,AvoidUnnecessaryBeforeUnloadCheckSync,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,Translate,AutoDeElevate --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --edge-skip-compat-layer-relaunch --enable-automation --headless --hide-scrollbars --mute-audio --blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4 --no-sandbox --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --user-data-dir=/tmp/playwright_chromiumdev_profile-hZrp4w --remote-debugging-pipe --no-startup-window[22m
+[2m  - <launched> pid=63[22m
+[2m  - [pid=63][err] [63:63:1125/161242.891465:FATAL:chrome/browser/process_singleton_posix.cc:292] Check failed: . socket() failed: Operation not permitted (1)[22m
+[2m  - [pid=63][err] [1125/161242.891777:ERROR:third_party/crashpad/crashpad/util/linux/scoped_ptrace_attach.cc:27] ptrace: Operation not permitted (1)[22m
+[2m  - [pid=63] <gracefully close start>[22m
+[2m  - [pid=63] <kill>[22m
+[2m  - [pid=63] <will force kill>[22m
+[2m  - [pid=63] <process did exit: exitCode=null, signal=SIGABRT>[22m
+[2m  - [pid=63] starting temporary directories cleanup[22m
+[2m  - [pid=63] finished temporary directories cleanup[22m
+[2m  - [pid=63] <gracefully close end>[22m
+
+
+   at ../scripts/browser-backend-setup.ts:11
+
+   9 |   const project = config.projects[0];
+  10 |   if (!project) throw new Error('No browser project configured');
+> 11 |   const browser = await chromium.launch({
+     |                                  ^
+  12 |     ...project.use.launchOptions,
+  13 |     headless: project.use.headless,
+  14 |   });
+    at verifyBrowserBackend (/home/agent/motobound-579b454ae846/scripts/browser-backend-setup.ts:11:34)
+[browser-error] Error: browserType.launch: Target page, context or browser has been closed
+Browser logs:
+
+<launching> /home/agent/motobound-579b454ae846/test-results/agent44/playwright-cache/chromium-1193/chrome-linux/chrome --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-extensions --disable-features=AcceptCHFrame,AvoidUnnecessaryBeforeUnloadCheckSync,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,Translate,AutoDeElevate --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --edge-skip-compat-layer-relaunch --enable-automation --headless --hide-scrollbars --mute-audio --blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4 --no-sandbox --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --user-data-dir=/tmp/playwright_chromiumdev_profile-hZrp4w --remote-debugging-pipe --no-startup-window
+<launched> pid=63
+[pid=63][err] [63:63:1125/161242.891465:FATAL:chrome/browser/process_singleton_posix.cc:292] Check failed: . socket() failed: Operation not permitted (1)
+[pid=63][err] [1125/161242.891777:ERROR:third_party/crashpad/crashpad/util/linux/scoped_ptrace_attach.cc:27] ptrace: Operation not permitted (1)
+Call log:
+[2m  - <launching> /home/agent/motobound-579b454ae846/test-results/agent44/playwright-cache/chromium-1193/chrome-linux/chrome --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-extensions --disable-features=AcceptCHFrame,AvoidUnnecessaryBeforeUnloadCheckSync,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,Translate,AutoDeElevate --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --edge-skip-compat-layer-relaunch --enable-automation --headless --hide-scrollbars --mute-audio --blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4 --no-sandbox --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --user-data-dir=/tmp/playwright_chromiumdev_profile-hZrp4w --remote-debugging-pipe --no-startup-window[22m
+[2m  - <launched> pid=63[22m
+[2m  - [pid=63][err] [63:63:1125/161242.891465:FATAL:chrome/browser/process_singleton_posix.cc:292] Check failed: . socket() failed: Operation not permitted (1)[22m
+[2m  - [pid=63][err] [1125/161242.891777:ERROR:third_party/crashpad/crashpad/util/linux/scoped_ptrace_attach.cc:27] ptrace: Operation not permitted (1)[22m
+[2m  - [pid=63] <gracefully close start>[22m
+[2m  - [pid=63] <kill>[22m
+[2m  - [pid=63] <will force kill>[22m
+[2m  - [pid=63] <process did exit: exitCode=null, signal=SIGABRT>[22m
+[2m  - [pid=63] starting temporary directories cleanup[22m
+[2m  - [pid=63] finished temporary directories cleanup[22m
+[2m  - [pid=63] <gracefully close end>[22m
+
+    at verifyBrowserBackend (/home/agent/motobound-579b454ae846/scripts/browser-backend-setup.ts:11:34)
+
+
+To open last HTML report run:
+[36m[39m
+[36m  npx playwright show-report[39m
+[36m[39m

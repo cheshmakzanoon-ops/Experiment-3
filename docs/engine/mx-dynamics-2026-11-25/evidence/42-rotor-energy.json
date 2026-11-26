@@ -1,0 +1,676 @@
+{
+  "adapterSha256": "7a72b2747d4469bc652ce965afab4a8f94a7b1606073291c6d36045182b9361e",
+  "afterSha256": "7a72b2747d4469bc652ce965afab4a8f94a7b1606073291c6d36045182b9361e",
+  "sourceStable": true,
+  "preservedWithoutFrontBrake": true,
+  "preservedExcluded": true,
+  "counterfactual": "Only flight() uses the old generic front inertia; every other current method and state is identical.",
+  "modes": [
+    {
+      "mode": "physical-front-inertia",
+      "ledgers": [
+        {
+          "machine": "mx250",
+          "hz": 120,
+          "inertia": 0.6,
+          "initialOmega": 30,
+          "initialEnergyJ": 270,
+          "heatJ": 257.8318334856272,
+          "bearingJ": 12.168166515132203,
+          "finalEnergyJ": 0,
+          "finalOmega": 0,
+          "energyResidualJ": 7.594280759803951e-10,
+          "angularMismatchNms": -1.3877787807814457e-17,
+          "chassisMismatchNms": 5.329070518200751e-15,
+          "intervals": 20,
+          "landings": 0,
+          "airborne": true
+        },
+        {
+          "machine": "mx250",
+          "hz": 240,
+          "inertia": 0.6,
+          "initialOmega": 30,
+          "initialEnergyJ": 270,
+          "heatJ": 258.263921310613,
+          "bearingJ": 11.736078685323363,
+          "finalEnergyJ": 0,
+          "finalOmega": 0,
+          "energyResidualJ": -4.063622327521443e-9,
+          "angularMismatchNms": -1.1102230246251565e-16,
+          "chassisMismatchNms": -1.942890293094024e-16,
+          "intervals": 39,
+          "landings": 0,
+          "airborne": true
+        },
+        {
+          "machine": "mx250",
+          "hz": 480,
+          "inertia": 0.6,
+          "initialOmega": 30,
+          "initialEnergyJ": 270,
+          "heatJ": 258.47749148813847,
+          "bearingJ": 11.522508515319078,
+          "finalEnergyJ": 0,
+          "finalOmega": 0,
+          "energyResidualJ": 3.4575577956275083e-9,
+          "angularMismatchNms": 0,
+          "chassisMismatchNms": -2.4147350785597155e-15,
+          "intervals": 77,
+          "landings": 0,
+          "airborne": true
+        },
+        {
+          "machine": "mx450",
+          "hz": 120,
+          "inertia": 0.6,
+          "initialOmega": 30,
+          "initialEnergyJ": 270,
+          "heatJ": 257.8318334856776,
+          "bearingJ": 12.168166515132203,
+          "finalEnergyJ": 0,
+          "finalOmega": 0,
+          "energyResidualJ": 8.09791345091071e-10,
+          "angularMismatchNms": -1.3877787807814457e-17,
+          "chassisMismatchNms": -2.3314683517128287e-15,
+          "intervals": 20,
+          "landings": 0,
+          "airborne": true
+        },
+        {
+          "machine": "mx450",
+          "hz": 240,
+          "inertia": 0.6,
+          "initialOmega": 30,
+          "initialEnergyJ": 270,
+          "heatJ": 258.2639213098765,
+          "bearingJ": 11.736078685323363,
+          "finalEnergyJ": 0,
+          "finalOmega": 0,
+          "energyResidualJ": -4.800142505700933e-9,
+          "angularMismatchNms": -1.1102230246251565e-16,
+          "chassisMismatchNms": 6.938893903907228e-16,
+          "intervals": 39,
+          "landings": 0,
+          "airborne": true
+        },
+        {
+          "machine": "mx450",
+          "hz": 480,
+          "inertia": 0.6,
+          "initialOmega": 30,
+          "initialEnergyJ": 270,
+          "heatJ": 258.4774914879961,
+          "bearingJ": 11.522508515319078,
+          "finalEnergyJ": 0,
+          "finalOmega": 0,
+          "energyResidualJ": 3.3151650313811842e-9,
+          "angularMismatchNms": 0,
+          "chassisMismatchNms": -1.887379141862766e-15,
+          "intervals": 77,
+          "landings": 0,
+          "airborne": true
+        }
+      ],
+      "noFrontBrake": [
+        {
+          "machine": "mx250",
+          "venue": "valley-ridge-mx",
+          "traceSha256": "7dc550c632b8b0aeeabde70d127cd85fbc369454ee51db527862187055ba337c",
+          "airborneIntervals": 434,
+          "frontBrakeIntervals": 0,
+          "landing": {
+            "time": 2.8053014943211623,
+            "s": 212.82048146126385,
+            "distance": 20.23528331065788,
+            "takeoffSpeed": 14.626110117594868,
+            "airTime": 1.611551494321122,
+            "pitchError": 0.10357545362300773,
+            "slope": 0.014733476204024787,
+            "normalSpeed": 8.990857074195295,
+            "yawError": -1.113175620026761e-10,
+            "lateralSpeed": -0.00008965771213446683,
+            "bottomSpeed": 6.650955431499682,
+            "outcome": "bottomed"
+          },
+          "crashes": 0
+        },
+        {
+          "machine": "mx250",
+          "venue": "arena-nord-sx",
+          "traceSha256": "06096a4c90bcd89ed62b9b9daded037793639fd3046a829245dda8f6ea5e5244",
+          "airborneIntervals": 411,
+          "frontBrakeIntervals": 0,
+          "landing": {
+            "time": 2.8074513528244145,
+            "s": 407.9939875061892,
+            "distance": 19.651673878827427,
+            "takeoffSpeed": 14.2580955163574,
+            "airTime": 1.6074513528243752,
+            "pitchError": 0.0331510273331341,
+            "slope": 0.00007849864593527171,
+            "normalSpeed": 8.904498257619757,
+            "yawError": 0,
+            "lateralSpeed": 0.00024090261179559835,
+            "bottomSpeed": 6.421727835669037,
+            "outcome": "bottomed"
+          },
+          "crashes": 0
+        },
+        {
+          "machine": "mx450",
+          "venue": "valley-ridge-mx",
+          "traceSha256": "4743a3cdf49336a858736b5c1db804052c27b8da9cb841d0b0c031663c2e1a26",
+          "airborneIntervals": 444,
+          "frontBrakeIntervals": 0,
+          "landing": {
+            "time": 2.818400055403898,
+            "s": 213.3133920550647,
+            "distance": 20.68948536079345,
+            "takeoffSpeed": 14.797294814730275,
+            "airTime": 1.6288167220705223,
+            "pitchError": 0.11544172469161251,
+            "slope": 0.016373898046925385,
+            "normalSpeed": 9.090942320079835,
+            "yawError": -1.0417934949013816e-10,
+            "lateralSpeed": -0.0002912241110062308,
+            "bottomSpeed": 6.8887200795475545,
+            "outcome": "bottomed"
+          },
+          "crashes": 0
+        },
+        {
+          "machine": "mx450",
+          "venue": "arena-nord-sx",
+          "traceSha256": "3e01dc2c4463a8432a811266a5d2bc571b192301b512a07a011f20b78824fcf2",
+          "airborneIntervals": 423,
+          "frontBrakeIntervals": 0,
+          "landing": {
+            "time": 2.818245167371583,
+            "s": 408.41966322894075,
+            "distance": 20.082105989570156,
+            "takeoffSpeed": 14.43306269326488,
+            "airTime": 1.624495167371541,
+            "pitchError": 0.10376855679387738,
+            "slope": 0.00008083349251260351,
+            "normalSpeed": 8.955550422099334,
+            "yawError": -6.00874222141444e-10,
+            "lateralSpeed": 0.0003133988126114762,
+            "bottomSpeed": 6.878482427739557,
+            "outcome": "bottomed"
+          },
+          "crashes": 0
+        }
+      ],
+      "excluded": [
+        {
+          "machine": "mx250",
+          "venue": "valley-ridge-mx",
+          "ai": true,
+          "traceSha256": "28d7b3037066113faffba976facdac8c88bc4dbfc7fd71af6d446b032a616680",
+          "airborne": true,
+          "crashes": 0
+        },
+        {
+          "machine": "mx450",
+          "venue": "arena-nord-sx",
+          "ai": true,
+          "traceSha256": "31487adc6f6ede9e723c86f49493e10b93a36352435028ad6d800051e6128f47",
+          "airborne": true,
+          "crashes": 0
+        },
+        {
+          "machine": "sm450",
+          "venue": "valley-ridge-mx",
+          "ai": false,
+          "traceSha256": "892e6483e1679299ffbead1f21cb3fdf4f70b9988296e288fb94a4a341232cec",
+          "airborne": true,
+          "crashes": 0
+        },
+        {
+          "machine": "sm450",
+          "venue": "arena-nord-sx",
+          "ai": false,
+          "traceSha256": "892e6483e1679299ffbead1f21cb3fdf4f70b9988296e288fb94a4a341232cec",
+          "airborne": true,
+          "crashes": 0
+        },
+        {
+          "machine": "mx250",
+          "venue": "aurel",
+          "ai": false,
+          "traceSha256": "db4562921081f6ccb30d4f0006c3e5f3f2b6a5b403134b457e0012a1b190c1da",
+          "airborne": true,
+          "crashes": 0
+        },
+        {
+          "machine": "mx450",
+          "venue": "aurel",
+          "ai": false,
+          "traceSha256": "afe70350703a5d7c394b51941e2d3b3f45712b56dcf706756df26e4629f15cf8",
+          "airborne": true,
+          "crashes": 0
+        }
+      ],
+      "adverse": [
+        {
+          "hz": 240,
+          "landing": {
+            "time": 2.785925654766261,
+            "s": 407.52981413258124,
+            "distance": 19.20876330046025,
+            "takeoffSpeed": 14.160172021196903,
+            "airTime": 1.5817589880995566,
+            "pitchError": -0.34247061087101155,
+            "slope": 0.00007605621948586979,
+            "normalSpeed": 8.69299979968103,
+            "yawError": 0,
+            "lateralSpeed": 0.0003470973222884201,
+            "bottomSpeed": 7.2500269454219275,
+            "outcome": "crash-flat"
+          },
+          "crashes": 1,
+          "violations": [],
+          "traceSha256": "250981898704ed283f53a1382570e9353c85baec8d9905634597c4123b0c2ad1"
+        },
+        {
+          "hz": 480,
+          "landing": {
+            "time": 2.789857993047919,
+            "s": 407.57993359035765,
+            "distance": 19.311695923052213,
+            "takeoffSpeed": 14.194366792343097,
+            "airTime": 1.5898579930479437,
+            "pitchError": -0.3262534686899318,
+            "slope": 0.00007696815385324896,
+            "normalSpeed": 8.709624874729329,
+            "yawError": 0,
+            "lateralSpeed": 0.0004228015569457272,
+            "bottomSpeed": 7.2440867959456225,
+            "outcome": "crash-flat"
+          },
+          "crashes": 1,
+          "violations": [],
+          "traceSha256": "f606067b75a5d2f16aec3e48d72d5835b27de6be60efc4869f113d12a612b41b"
+        },
+        {
+          "hz": 960,
+          "landing": {
+            "time": 2.7907937636321676,
+            "s": 407.58544483560183,
+            "distance": 19.356305021379796,
+            "takeoffSpeed": 14.21061946776689,
+            "airTime": 1.5939187636322354,
+            "pitchError": -0.32501251284278976,
+            "slope": 0.00007722295721435976,
+            "normalSpeed": 8.711690720613385,
+            "yawError": 0,
+            "lateralSpeed": 0.0004556453950364908,
+            "bottomSpeed": 7.2432814134539285,
+            "outcome": "crash-flat"
+          },
+          "crashes": 1,
+          "violations": [],
+          "traceSha256": "849f6e3266b6ad31d681037a4eabb70e45482cb794e543825aaa9d671a012c50"
+        },
+        {
+          "hz": 1920,
+          "landing": {
+            "time": 2.7910577348304924,
+            "s": 407.58656439048957,
+            "distance": 19.383557846914027,
+            "takeoffSpeed": 14.221699326151402,
+            "airTime": 1.5962660681638934,
+            "pitchError": -0.3263907858179067,
+            "slope": 0.00007735069052694214,
+            "normalSpeed": 8.711238075185022,
+            "yawError": 0,
+            "lateralSpeed": 0.0005044944052929967,
+            "bottomSpeed": 7.245223230149709,
+            "outcome": "crash-flat"
+          },
+          "crashes": 1,
+          "violations": [],
+          "traceSha256": "4f198a97b657713bab36f306a4fc4a70d6754bc4952e68df6a10946b8b6a6e7f"
+        }
+      ]
+    },
+    {
+      "mode": "legacy-front-inertia",
+      "ledgers": [
+        {
+          "machine": "mx250",
+          "hz": 120,
+          "inertia": 0.6,
+          "initialOmega": 30,
+          "initialEnergyJ": 270,
+          "heatJ": 279.31781960904294,
+          "bearingJ": 12.168166515132203,
+          "finalEnergyJ": 0,
+          "finalOmega": 0,
+          "energyResidualJ": 21.485986124175156,
+          "angularMismatchNms": -1.450264334999349,
+          "chassisMismatchNms": -1.4502643349993476,
+          "intervals": 20,
+          "landings": 0,
+          "airborne": true
+        },
+        {
+          "machine": "mx250",
+          "hz": 240,
+          "inertia": 0.6,
+          "initialOmega": 30,
+          "initialEnergyJ": 270,
+          "heatJ": 279.7859147539283,
+          "bearingJ": 11.736078685323363,
+          "finalEnergyJ": 0,
+          "finalOmega": 0,
+          "energyResidualJ": 21.521993439251673,
+          "angularMismatchNms": -1.4514425594796911,
+          "chassisMismatchNms": -1.4514425594796867,
+          "intervals": 39,
+          "landings": 0,
+          "airborne": true
+        },
+        {
+          "machine": "mx250",
+          "hz": 480,
+          "inertia": 0.6,
+          "initialOmega": 30,
+          "initialEnergyJ": 270,
+          "heatJ": 280.01728244321686,
+          "bearingJ": 11.522508515319078,
+          "finalEnergyJ": 0,
+          "finalOmega": 0,
+          "energyResidualJ": 21.539790958535946,
+          "angularMismatchNms": -1.4520328930933697,
+          "chassisMismatchNms": -1.4520328930933692,
+          "intervals": 77,
+          "landings": 0,
+          "airborne": true
+        },
+        {
+          "machine": "mx450",
+          "hz": 120,
+          "inertia": 0.6,
+          "initialOmega": 30,
+          "initialEnergyJ": 270,
+          "heatJ": 300.80380573190683,
+          "bearingJ": 12.168166515132203,
+          "finalEnergyJ": 0,
+          "finalOmega": 0,
+          "energyResidualJ": 42.97197224703905,
+          "angularMismatchNms": -2.900528669998693,
+          "chassisMismatchNms": -2.9005286699986934,
+          "intervals": 20,
+          "landings": 0,
+          "airborne": true
+        },
+        {
+          "machine": "mx450",
+          "hz": 240,
+          "inertia": 0.6,
+          "initialOmega": 30,
+          "initialEnergyJ": 270,
+          "heatJ": 301.3079081966817,
+          "bearingJ": 11.736078685323363,
+          "finalEnergyJ": 0,
+          "finalOmega": 0,
+          "energyResidualJ": 43.04398688200507,
+          "angularMismatchNms": -2.9028851189593747,
+          "chassisMismatchNms": -2.9028851189593765,
+          "intervals": 39,
+          "landings": 0,
+          "airborne": true
+        },
+        {
+          "machine": "mx450",
+          "hz": 480,
+          "inertia": 0.6,
+          "initialOmega": 30,
+          "initialEnergyJ": 270,
+          "heatJ": 301.55707340147023,
+          "bearingJ": 11.522508515319078,
+          "finalEnergyJ": 0,
+          "finalOmega": 0,
+          "energyResidualJ": 43.07958191678932,
+          "angularMismatchNms": -2.9040657861867314,
+          "chassisMismatchNms": -2.9040657861867354,
+          "intervals": 77,
+          "landings": 0,
+          "airborne": true
+        }
+      ],
+      "noFrontBrake": [
+        {
+          "machine": "mx250",
+          "venue": "valley-ridge-mx",
+          "traceSha256": "7dc550c632b8b0aeeabde70d127cd85fbc369454ee51db527862187055ba337c",
+          "airborneIntervals": 434,
+          "frontBrakeIntervals": 0,
+          "landing": {
+            "time": 2.8053014943211623,
+            "s": 212.82048146126385,
+            "distance": 20.23528331065788,
+            "takeoffSpeed": 14.626110117594868,
+            "airTime": 1.611551494321122,
+            "pitchError": 0.10357545362300773,
+            "slope": 0.014733476204024787,
+            "normalSpeed": 8.990857074195295,
+            "yawError": -1.113175620026761e-10,
+            "lateralSpeed": -0.00008965771213446683,
+            "bottomSpeed": 6.650955431499682,
+            "outcome": "bottomed"
+          },
+          "crashes": 0
+        },
+        {
+          "machine": "mx250",
+          "venue": "arena-nord-sx",
+          "traceSha256": "06096a4c90bcd89ed62b9b9daded037793639fd3046a829245dda8f6ea5e5244",
+          "airborneIntervals": 411,
+          "frontBrakeIntervals": 0,
+          "landing": {
+            "time": 2.8074513528244145,
+            "s": 407.9939875061892,
+            "distance": 19.651673878827427,
+            "takeoffSpeed": 14.2580955163574,
+            "airTime": 1.6074513528243752,
+            "pitchError": 0.0331510273331341,
+            "slope": 0.00007849864593527171,
+            "normalSpeed": 8.904498257619757,
+            "yawError": 0,
+            "lateralSpeed": 0.00024090261179559835,
+            "bottomSpeed": 6.421727835669037,
+            "outcome": "bottomed"
+          },
+          "crashes": 0
+        },
+        {
+          "machine": "mx450",
+          "venue": "valley-ridge-mx",
+          "traceSha256": "4743a3cdf49336a858736b5c1db804052c27b8da9cb841d0b0c031663c2e1a26",
+          "airborneIntervals": 444,
+          "frontBrakeIntervals": 0,
+          "landing": {
+            "time": 2.818400055403898,
+            "s": 213.3133920550647,
+            "distance": 20.68948536079345,
+            "takeoffSpeed": 14.797294814730275,
+            "airTime": 1.6288167220705223,
+            "pitchError": 0.11544172469161251,
+            "slope": 0.016373898046925385,
+            "normalSpeed": 9.090942320079835,
+            "yawError": -1.0417934949013816e-10,
+            "lateralSpeed": -0.0002912241110062308,
+            "bottomSpeed": 6.8887200795475545,
+            "outcome": "bottomed"
+          },
+          "crashes": 0
+        },
+        {
+          "machine": "mx450",
+          "venue": "arena-nord-sx",
+          "traceSha256": "3e01dc2c4463a8432a811266a5d2bc571b192301b512a07a011f20b78824fcf2",
+          "airborneIntervals": 423,
+          "frontBrakeIntervals": 0,
+          "landing": {
+            "time": 2.818245167371583,
+            "s": 408.41966322894075,
+            "distance": 20.082105989570156,
+            "takeoffSpeed": 14.43306269326488,
+            "airTime": 1.624495167371541,
+            "pitchError": 0.10376855679387738,
+            "slope": 0.00008083349251260351,
+            "normalSpeed": 8.955550422099334,
+            "yawError": -6.00874222141444e-10,
+            "lateralSpeed": 0.0003133988126114762,
+            "bottomSpeed": 6.878482427739557,
+            "outcome": "bottomed"
+          },
+          "crashes": 0
+        }
+      ],
+      "excluded": [
+        {
+          "machine": "mx250",
+          "venue": "valley-ridge-mx",
+          "ai": true,
+          "traceSha256": "28d7b3037066113faffba976facdac8c88bc4dbfc7fd71af6d446b032a616680",
+          "airborne": true,
+          "crashes": 0
+        },
+        {
+          "machine": "mx450",
+          "venue": "arena-nord-sx",
+          "ai": true,
+          "traceSha256": "31487adc6f6ede9e723c86f49493e10b93a36352435028ad6d800051e6128f47",
+          "airborne": true,
+          "crashes": 0
+        },
+        {
+          "machine": "sm450",
+          "venue": "valley-ridge-mx",
+          "ai": false,
+          "traceSha256": "892e6483e1679299ffbead1f21cb3fdf4f70b9988296e288fb94a4a341232cec",
+          "airborne": true,
+          "crashes": 0
+        },
+        {
+          "machine": "sm450",
+          "venue": "arena-nord-sx",
+          "ai": false,
+          "traceSha256": "892e6483e1679299ffbead1f21cb3fdf4f70b9988296e288fb94a4a341232cec",
+          "airborne": true,
+          "crashes": 0
+        },
+        {
+          "machine": "mx250",
+          "venue": "aurel",
+          "ai": false,
+          "traceSha256": "db4562921081f6ccb30d4f0006c3e5f3f2b6a5b403134b457e0012a1b190c1da",
+          "airborne": true,
+          "crashes": 0
+        },
+        {
+          "machine": "mx450",
+          "venue": "aurel",
+          "ai": false,
+          "traceSha256": "afe70350703a5d7c394b51941e2d3b3f45712b56dcf706756df26e4629f15cf8",
+          "airborne": true,
+          "crashes": 0
+        }
+      ],
+      "adverse": [
+        {
+          "hz": 240,
+          "landing": {
+            "time": 2.7853241583352157,
+            "s": 407.522665761428,
+            "distance": 19.2016140989823,
+            "takeoffSpeed": 14.160172021196903,
+            "airTime": 1.5811574916685114,
+            "pitchError": -0.355327787087338,
+            "slope": 0.00007605621948586978,
+            "normalSpeed": 8.687101222956638,
+            "yawError": 0,
+            "lateralSpeed": 0.0003470973222884201,
+            "bottomSpeed": 7.26608033428392,
+            "outcome": "crash-flat"
+          },
+          "crashes": 1,
+          "violations": [
+            "rotor work did not balance its finite thermal reservoir"
+          ],
+          "traceSha256": "8c772093f71663c689cac3facf6cca3fbfdc375b013d9f884fb9d4cf50dd1e0e"
+        },
+        {
+          "hz": 480,
+          "landing": {
+            "time": 2.7892371739600414,
+            "s": 407.57255469877157,
+            "distance": 19.304316152999768,
+            "takeoffSpeed": 14.194366792343097,
+            "airTime": 1.5892371739600661,
+            "pitchError": -0.3389771780978486,
+            "slope": 0.00007696815385324897,
+            "normalSpeed": 8.703536810490528,
+            "yawError": 0,
+            "lateralSpeed": 0.0004228015569457272,
+            "bottomSpeed": 7.259684935159148,
+            "outcome": "crash-flat"
+          },
+          "crashes": 1,
+          "violations": [
+            "rotor work did not balance its finite thermal reservoir"
+          ],
+          "traceSha256": "d952140e70b0250c4092d2de13ed84bfe6fc1ea69878dde001aee10e8cd175e8"
+        },
+        {
+          "hz": 960,
+          "landing": {
+            "time": 2.790171389368013,
+            "s": 407.5780496353369,
+            "distance": 19.348908934562736,
+            "takeoffSpeed": 14.21061946776689,
+            "airTime": 1.5932963893680807,
+            "pitchError": -0.337729455474919,
+            "slope": 0.00007722295721435976,
+            "normalSpeed": 8.705587405575136,
+            "yawError": 0,
+            "lateralSpeed": 0.0004556453950364908,
+            "bottomSpeed": 7.258345314372601,
+            "outcome": "crash-flat"
+          },
+          "crashes": 1,
+          "violations": [
+            "rotor work did not balance its finite thermal reservoir"
+          ],
+          "traceSha256": "b63851d2ff847f7cad82cf6a6bf4daea49f4db85bc622275954287f33d428b8b"
+        },
+        {
+          "hz": 1920,
+          "landing": {
+            "time": 2.790436715515901,
+            "s": 407.57918599444713,
+            "distance": 19.376178562941135,
+            "takeoffSpeed": 14.221699326151402,
+            "airTime": 1.5956450488493021,
+            "pitchError": -0.33912573776313076,
+            "slope": 0.00007735069052694213,
+            "normalSpeed": 8.705148047485874,
+            "yawError": 0,
+            "lateralSpeed": 0.0005044944052929967,
+            "bottomSpeed": 7.259636862125193,
+            "outcome": "crash-flat"
+          },
+          "crashes": 1,
+          "violations": [
+            "rotor work did not balance its finite thermal reservoir"
+          ],
+          "traceSha256": "3ae4dda1bdfa53375d70922c13eb360f383e8cd8452aa965a861e9ff0598412f"
+        }
+      ]
+    }
+  ]
+}

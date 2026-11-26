@@ -1,0 +1,65 @@
+[2m[WebServer] [22m(node:20) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22mnpm warn Unknown env config "http-proxy". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+[2m[WebServer] [22m(node:33) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+2026-11-25T23:06:57.515Z pw:api => browserType.launch started
+2026-11-25T23:06:57.568Z pw:api <= browserType.launch failed
+Error: browserType.launch: Target page, context or browser has been closed
+Browser logs:
+
+<launching> /usr/bin/chromium --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-extensions --disable-features=AcceptCHFrame,AvoidUnnecessaryBeforeUnloadCheckSync,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,Translate,AutoDeElevate --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --edge-skip-compat-layer-relaunch --enable-automation --headless --hide-scrollbars --mute-audio --blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4 --no-sandbox --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --user-data-dir=/tmp/playwright_chromiumdev_profile-XfnYgP --remote-debugging-pipe --no-startup-window
+<launched> pid=76
+[pid=76][err] /usr/bin/chromium: 9: [: 5225713664: unexpected operator
+[pid=76][err] /usr/bin/chromium: 153: exec: /usr/lib/chromium/chromium: not found
+Call log:
+[2m  - <launching> /usr/bin/chromium --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-extensions --disable-features=AcceptCHFrame,AvoidUnnecessaryBeforeUnloadCheckSync,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,Translate,AutoDeElevate --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --edge-skip-compat-layer-relaunch --enable-automation --headless --hide-scrollbars --mute-audio --blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4 --no-sandbox --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --user-data-dir=/tmp/playwright_chromiumdev_profile-XfnYgP --remote-debugging-pipe --no-startup-window[22m
+[2m  - <launched> pid=76[22m
+[2m  - [pid=76][err] /usr/bin/chromium: 9: [: 5225713664: unexpected operator[22m
+[2m  - [pid=76][err] /usr/bin/chromium: 153: exec: /usr/lib/chromium/chromium: not found[22m
+[2m  - [pid=76] <gracefully close start>[22m
+[2m  - [pid=76] <kill>[22m
+[2m  - [pid=76] <will force kill>[22m
+[2m  - [pid=76] <process did exit: exitCode=127, signal=null>[22m
+[2m  - [pid=76] starting temporary directories cleanup[22m
+[2m  - [pid=76] finished temporary directories cleanup[22m
+[2m  - [pid=76] <gracefully close end>[22m
+
+
+   at ../scripts/browser-backend-setup.ts:11
+
+   9 |   const project = config.projects[0];
+  10 |   if (!project) throw new Error('No browser project configured');
+> 11 |   const browser = await chromium.launch({
+     |                                  ^
+  12 |     ...project.use.launchOptions,
+  13 |     headless: project.use.headless,
+  14 |   });
+    at verifyBrowserBackend (/home/agent/motobound-579b454ae846/scripts/browser-backend-setup.ts:11:34)
+[browser-error] Error: browserType.launch: Target page, context or browser has been closed
+Browser logs:
+
+<launching> /usr/bin/chromium --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-extensions --disable-features=AcceptCHFrame,AvoidUnnecessaryBeforeUnloadCheckSync,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,Translate,AutoDeElevate --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --edge-skip-compat-layer-relaunch --enable-automation --headless --hide-scrollbars --mute-audio --blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4 --no-sandbox --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --user-data-dir=/tmp/playwright_chromiumdev_profile-XfnYgP --remote-debugging-pipe --no-startup-window
+<launched> pid=76
+[pid=76][err] /usr/bin/chromium: 9: [: 5225713664: unexpected operator
+[pid=76][err] /usr/bin/chromium: 153: exec: /usr/lib/chromium/chromium: not found
+Call log:
+[2m  - <launching> /usr/bin/chromium --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-extensions --disable-features=AcceptCHFrame,AvoidUnnecessaryBeforeUnloadCheckSync,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,Translate,AutoDeElevate --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --edge-skip-compat-layer-relaunch --enable-automation --headless --hide-scrollbars --mute-audio --blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4 --no-sandbox --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --user-data-dir=/tmp/playwright_chromiumdev_profile-XfnYgP --remote-debugging-pipe --no-startup-window[22m
+[2m  - <launched> pid=76[22m
+[2m  - [pid=76][err] /usr/bin/chromium: 9: [: 5225713664: unexpected operator[22m
+[2m  - [pid=76][err] /usr/bin/chromium: 153: exec: /usr/lib/chromium/chromium: not found[22m
+[2m  - [pid=76] <gracefully close start>[22m
+[2m  - [pid=76] <kill>[22m
+[2m  - [pid=76] <will force kill>[22m
+[2m  - [pid=76] <process did exit: exitCode=127, signal=null>[22m
+[2m  - [pid=76] starting temporary directories cleanup[22m
+[2m  - [pid=76] finished temporary directories cleanup[22m
+[2m  - [pid=76] <gracefully close end>[22m
+
+    at verifyBrowserBackend (/home/agent/motobound-579b454ae846/scripts/browser-backend-setup.ts:11:34)
+
+
+To open last HTML report run:
+[36m[39m
+[36m  npx playwright show-report[39m
+[36m[39m

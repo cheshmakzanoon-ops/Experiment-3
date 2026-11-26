@@ -1,0 +1,239 @@
+{
+  "assignment": 37,
+  "scope": "Coupled public-step lifecycle, publication and diagnostic contracts",
+  "sourceSha256": {
+    "src/simulation/offroad/dirt-bike-vehicle.ts": "02cc6351d7467833dfa21be74a2fac71ddfbbd64ecc4cd6623809325384d58b4",
+    "src/simulation/offroad/mx-ground-physics.ts": "68b04234548a2b037f4769d38343c26ec712a61fd9261fd6dac44641c81ca4e3",
+    "scripts/bench/motocross-player-dynamics.ts": "1a3cda583e6b906b3708d80289eca195ede32729477e26942aac74c2dddd0f4d",
+    "tests/motocross-coupled-step-contract.test.ts": "96312bfb9b43d1bb65342beed500931d68b5679d3e1d5ef6d3a1e0061a7a83e8",
+    "tests/motocross-player-dynamics.test.ts": "27b32707dae5f3621a54cd893e15b37c66eab6419348ce66eff4604e4252cbf7",
+    "tests/motocross-dynamics-replay.test.ts": "13a306ecbdc3a9e797eace449f53f0664b70a85232237e535576d37b87d8e23f",
+    "tests/motocross-recovery-replay.test.ts": "7e8d40351f80343adc6ee737da5140717425be47548dcef0ab26846942c2ba82",
+    "scripts/bench/mx-dynamics-preservation.ts": "b9bb64bb3bf0c3f33aaae2c1b894b3d783f496627881595b289d45fd6f1f0417",
+    "docs/engine/mx-dynamics-2026-11-25/evidence/non-mx-baseline.json": "f719ad80a6dccd33d33e7f7625d2d9f2f98c4124f9d8c079f8210b5c7044ba5c"
+  },
+  "publicationAndRotorProbes": [
+    {
+      "kind": "supported-publication",
+      "bike": "mx250",
+      "phases": 3,
+      "oldLastFrontFx": -1276.2243368981842,
+      "meanFrontFx": -951.711841138462,
+      "publishedFrontFx": -951.7118411384618,
+      "oldLastFrontSlipAliasW": 279.02754605691814,
+      "meanFrontSlipAliasW": 239.15665921453578,
+      "publishedFrontSlipAliasW": 239.15665921453578,
+      "frontSlipJ": 3.985944320242263
+    },
+    {
+      "kind": "entirely-free-refined",
+      "bike": "mx250",
+      "phases": 3,
+      "allFree": true,
+      "landings": 0,
+      "frontOmega": 59.19433974695201,
+      "oldSingleFrontOmega": 59.193666296604725,
+      "omegaDifference": 0.000673450347285609,
+      "actualFrontBrakeJ": 23.487993908630735,
+      "thermalReconstructedJ": 23.48799390880742,
+      "thermalResidualJ": 1.766871093877853e-10,
+      "outerEndpointThermalJ": 23.483480184514406,
+      "outerThermalErrorJ": -0.004513724116328888,
+      "oldOuterKineticWorkJ": 23.43573844317576,
+      "oldKineticErrorJ": -0.05225546545497295
+    },
+    {
+      "kind": "supported-publication",
+      "bike": "mx450",
+      "phases": 3,
+      "oldLastFrontFx": -1346.8486650749376,
+      "meanFrontFx": -1002.6640192970937,
+      "publishedFrontFx": -1002.6640192970935,
+      "oldLastFrontSlipAliasW": 308.08023747626436,
+      "meanFrontSlipAliasW": 263.131859930408,
+      "publishedFrontSlipAliasW": 263.131859930408,
+      "frontSlipJ": 4.3855309988401325
+    },
+    {
+      "kind": "entirely-free-refined",
+      "bike": "mx450",
+      "phases": 3,
+      "allFree": true,
+      "landings": 0,
+      "frontOmega": 59.19433974695201,
+      "oldSingleFrontOmega": 59.193666296604725,
+      "omegaDifference": 0.000673450347285609,
+      "actualFrontBrakeJ": 25.294762670833094,
+      "thermalReconstructedJ": 25.294762671205305,
+      "thermalResidualJ": 3.722107067005709e-10,
+      "outerEndpointThermalJ": 25.290396664968142,
+      "outerThermalErrorJ": -0.004366005864952172,
+      "oldOuterKineticWorkJ": 25.23848755418928,
+      "oldKineticErrorJ": -0.056275116643814016
+    }
+  ],
+  "legacyMxAi": {
+    "baselineAdapterSha256": "7fa932378aa37f4e93a51900e3e40f3aafa16a2c87f1a65537f5799fa31fa272",
+    "currentAdapterSha256": "02cc6351d7467833dfa21be74a2fac71ddfbbd64ecc4cd6623809325384d58b4",
+    "rows": [
+      {
+        "bike": "mx250",
+        "venue": "valley-ridge-mx",
+        "hz": 120,
+        "steps": 720,
+        "samples": 721,
+        "airborneSamples": 201,
+        "landings": 2,
+        "crashes": 0,
+        "previousSha256": "ece3f469efc40ba45604290594b538307fa2393f5ee41612c71703599ae78ffe",
+        "currentSha256": "ece3f469efc40ba45604290594b538307fa2393f5ee41612c71703599ae78ffe"
+      },
+      {
+        "bike": "mx250",
+        "venue": "valley-ridge-mx",
+        "hz": 240,
+        "steps": 1440,
+        "samples": 1441,
+        "airborneSamples": 369,
+        "landings": 3,
+        "crashes": 0,
+        "previousSha256": "f91aaa14a976fe7fa54ccb6a789b5d451e25beb54d03a639cc07b552cd4824a7",
+        "currentSha256": "f91aaa14a976fe7fa54ccb6a789b5d451e25beb54d03a639cc07b552cd4824a7"
+      },
+      {
+        "bike": "mx250",
+        "venue": "arena-nord-sx",
+        "hz": 120,
+        "steps": 720,
+        "samples": 721,
+        "airborneSamples": 382,
+        "landings": 6,
+        "crashes": 0,
+        "previousSha256": "bb9e496d4fb9dd0e4a21a1ac47f4def137bf7b8f98ff975b81b4b8ad32dfbb88",
+        "currentSha256": "bb9e496d4fb9dd0e4a21a1ac47f4def137bf7b8f98ff975b81b4b8ad32dfbb88"
+      },
+      {
+        "bike": "mx250",
+        "venue": "arena-nord-sx",
+        "hz": 240,
+        "steps": 1440,
+        "samples": 1441,
+        "airborneSamples": 661,
+        "landings": 6,
+        "crashes": 0,
+        "previousSha256": "d9258a84facdf3a487395539ca5d51202ae7492107c068a32c0e6c0871f4ab48",
+        "currentSha256": "d9258a84facdf3a487395539ca5d51202ae7492107c068a32c0e6c0871f4ab48"
+      },
+      {
+        "bike": "mx450",
+        "venue": "valley-ridge-mx",
+        "hz": 120,
+        "steps": 720,
+        "samples": 721,
+        "airborneSamples": 245,
+        "landings": 2,
+        "crashes": 0,
+        "previousSha256": "f641b3c6e897aa64e4402dc156910aa37087e6398dfc85401f98b0e2efb5b9ab",
+        "currentSha256": "f641b3c6e897aa64e4402dc156910aa37087e6398dfc85401f98b0e2efb5b9ab"
+      },
+      {
+        "bike": "mx450",
+        "venue": "valley-ridge-mx",
+        "hz": 240,
+        "steps": 1440,
+        "samples": 1441,
+        "airborneSamples": 373,
+        "landings": 3,
+        "crashes": 0,
+        "previousSha256": "163c824b2c87735207c8ca2727b898ca5c398a128183580901a069f6ea1026c3",
+        "currentSha256": "163c824b2c87735207c8ca2727b898ca5c398a128183580901a069f6ea1026c3"
+      },
+      {
+        "bike": "mx450",
+        "venue": "arena-nord-sx",
+        "hz": 120,
+        "steps": 720,
+        "samples": 721,
+        "airborneSamples": 375,
+        "landings": 6,
+        "crashes": 0,
+        "previousSha256": "bbd1d3bbcce918a826f286c2b4727a94c53bdc91c9b06cb25632cabb43e5726c",
+        "currentSha256": "bbd1d3bbcce918a826f286c2b4727a94c53bdc91c9b06cb25632cabb43e5726c"
+      },
+      {
+        "bike": "mx450",
+        "venue": "arena-nord-sx",
+        "hz": 240,
+        "steps": 1440,
+        "samples": 1441,
+        "airborneSamples": 693,
+        "landings": 6,
+        "crashes": 0,
+        "previousSha256": "10fa58ff84fa1f0029717fc2411f3c78f9d0b9ba1c66d95d84d55c4332ffb4b5",
+        "currentSha256": "10fa58ff84fa1f0029717fc2411f3c78f9d0b9ba1c66d95d84d55c4332ffb4b5"
+      }
+    ]
+  },
+  "nonMxPreservation": {
+    "pass": true,
+    "cases": 5,
+    "mismatches": [],
+    "baselinePhysics": 39,
+    "currentPhysics": 41
+  },
+  "independentConservationTolerances": {
+    "rotorJ": 1e-07,
+    "fourReservoirJ": 1e-07,
+    "publicSlipWorkJ": 1e-07,
+    "freeRotorRadiansPerSecond": 1e-09
+  },
+  "limitations": [
+    "The AI comparison isolates the pre-coupled HEAD adapter with identical current helper modules.",
+    "Heat proofs use the actual physical interval endpoints; final flux times public dt is not a multistep thermal oracle.",
+    "Grounded front-wheel inertia and the existing airborne generic wheel inertia remain separately calibrated.",
+    "Later assignment40 production changes require a fresh focused integration gate."
+  ],
+  "verification": {
+    "distinctTests": 58,
+    "files": 4,
+    "replayGroup": {
+      "passed": 35,
+      "seconds": 22.69,
+      "initialContractCases": 21,
+      "dynamicsReplayCases": 10,
+      "recoveryReplayCases": 4
+    },
+    "finalContractAndPlayerGroup": {
+      "passed": 44,
+      "seconds": 15.52,
+      "contractCases": 24,
+      "playerCases": 20
+    },
+    "targetedStrictTypeScript": "passed",
+    "focusedEslint": "passed",
+    "whitespace": "passed"
+  },
+  "phaseInertiasKgM2": [
+    {
+      "bike": "mx250",
+      "frontGround": 0.6,
+      "frontFlight": 0.65,
+      "rearGround": 0.52,
+      "rearFlight": 0.52,
+      "genericRearTire": 0.65
+    },
+    {
+      "bike": "mx450",
+      "frontGround": 0.6,
+      "frontFlight": 0.7,
+      "rearGround": 0.62,
+      "rearFlight": 0.62,
+      "genericRearTire": 0.7
+    }
+  ],
+  "phaseInertiaCallers": {
+    "frontGround": "BikeVehicle.fitFrontRadius() sets tires[0].inertia; DirtBikeVehicle.stepInterval() passes it as frontInertia",
+    "frontFlight": "DirtBikeVehicle.flight() uses definition.spec.wheelInertia for reaction torque and rotor work",
+    "rearGroundAndFlight": "DirtBikeVehicle.stepInterval() and flight() use air.spinInertia; generic rear tire ABI value is not that phase parameter"
+  }
+}

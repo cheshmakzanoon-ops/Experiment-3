@@ -1,0 +1,197 @@
+{
+  "assignment": 44,
+  "wave": 8,
+  "recordedAt": "2026-11-25T23:14:54.275308+00:00",
+  "status": "production_build_passed_native_browser_blocked_before_probe",
+  "build": {
+    "command": [
+      "node",
+      "--max-old-space-size=2048",
+      "node_modules/vite/bin/vite.js",
+      "build"
+    ],
+    "exitCode": 0,
+    "viteVersion": "7.1.7",
+    "reportedDurationSeconds": 13.09,
+    "transformedModules": 1106,
+    "ipGuard": "clean",
+    "warning": "Some chunks are larger than 500 kB after minification",
+    "identity": {
+      "version": 1,
+      "commit": null,
+      "fingerprint": "a153c34d852b156d5638b2175766e5f22135aa9045af2796cd2e7d9afdd5f9d0",
+      "variant": "product",
+      "edition": "full"
+    }
+  },
+  "integrity": {
+    "checkedAt": "2026-11-25T23:13:46.672346+00:00",
+    "checkedInputs": 1423,
+    "changedInputs": [],
+    "addedProtectedInputs": [],
+    "viteFingerprintInputCount": 1129,
+    "viteSourceFingerprint": "a153c34d852b156d5638b2175766e5f22135aa9045af2796cd2e7d9afdd5f9d0",
+    "expectedFingerprint": "a153c34d852b156d5638b2175766e5f22135aa9045af2796cd2e7d9afdd5f9d0",
+    "buildIdentity": {
+      "version": 1,
+      "commit": null,
+      "fingerprint": "a153c34d852b156d5638b2175766e5f22135aa9045af2796cd2e7d9afdd5f9d0",
+      "variant": "product",
+      "edition": "full"
+    },
+    "adapterSha256": "7a72b2747d4469bc652ce965afab4a8f94a7b1606073291c6d36045182b9361e",
+    "backendReportExists": false
+  },
+  "nativeJourney": {
+    "spec": "e2e/45-motocross-gameplay.spec.ts",
+    "requestedRenderer": "swiftshader",
+    "requestedQuality": "low",
+    "originalTestTimeoutMs": 1200000,
+    "outerCleanupDeadlineSeconds": 1320,
+    "testAssertionsModified": false,
+    "qualityDefaultsModified": false,
+    "applicationStateInjected": false,
+    "systemLauncherAttempt": {
+      "command": [
+        "node",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "e2e/45-motocross-gameplay.spec.ts",
+        "--output=test-results/agent44/browser"
+      ],
+      "startedAt": "2026-11-25T23:06:55.448230+00:00",
+      "requestedQuality": "low",
+      "requestedBackend": "swiftshader",
+      "originalTestTimeoutMs": 1200000,
+      "outerCleanupDeadlineSeconds": 1320,
+      "sourceFingerprint": "a153c34d852b156d5638b2175766e5f22135aa9045af2796cd2e7d9afdd5f9d0",
+      "pid": 6,
+      "exitCode": 1,
+      "outerTerminated": false,
+      "durationSeconds": 2.1764544889992976,
+      "finishedAt": "2026-11-25T23:06:57.624686+00:00",
+      "outcome": "blocked_before_browser_launch",
+      "blockingReason": "/usr/bin/chromium: 153: exec: /usr/lib/chromium/chromium: not found",
+      "browserExitCode": 127
+    },
+    "temporaryBrowserInstall": {
+      "command": [
+        "node",
+        "node_modules/@playwright/test/cli.js",
+        "install",
+        "chromium"
+      ],
+      "cache": "/home/agent/motobound-579b454ae846/test-results/agent44/playwright-cache",
+      "startedAt": "2026-11-25T23:11:21.770068+00:00",
+      "timeoutSeconds": 180,
+      "systemPackageInstall": false,
+      "accessOrNetworkOverrides": false,
+      "exitCode": 0,
+      "timedOut": false,
+      "finishedAt": "2026-11-25T23:11:59.909202+00:00",
+      "durationSeconds": 38.13908132299912,
+      "playwrightVersion": "1.55.1",
+      "chromiumVersion": "140.0.7339.186",
+      "chromiumBuild": 1193,
+      "initialEndpointResult": "HTTP 403: Site Unavailable from cdn.playwright.dev",
+      "standardInstallerFallback": "Default playwright.download.prss.microsoft.com mirror succeeded",
+      "manualEndpointRetry": false,
+      "networkOrAccessOverrides": false
+    },
+    "installedBrowserAttempt": {
+      "command": [
+        "node",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "e2e/45-motocross-gameplay.spec.ts",
+        "--output=test-results/agent44/browser-repaired"
+      ],
+      "startedAt": "2026-11-25T23:12:40.911497+00:00",
+      "requestedQuality": "low",
+      "requestedBackend": "swiftshader",
+      "browserExecutable": "/home/agent/motobound-579b454ae846/test-results/agent44/playwright-cache/chromium-1193/chrome-linux/chrome",
+      "playwrightVersion": "1.55.1",
+      "originalTestTimeoutMs": 1200000,
+      "outerCleanupDeadlineSeconds": 1320,
+      "sourceFingerprint": "a153c34d852b156d5638b2175766e5f22135aa9045af2796cd2e7d9afdd5f9d0",
+      "buildIdentity": {
+        "version": 1,
+        "commit": null,
+        "fingerprint": "a153c34d852b156d5638b2175766e5f22135aa9045af2796cd2e7d9afdd5f9d0",
+        "variant": "product",
+        "edition": "full"
+      },
+      "previewOwned": true,
+      "servedBuildIdentity": {
+        "version": 1,
+        "commit": null,
+        "fingerprint": "a153c34d852b156d5638b2175766e5f22135aa9045af2796cd2e7d9afdd5f9d0",
+        "variant": "product",
+        "edition": "full"
+      },
+      "previewReusedUnrelatedServer": false,
+      "pid": 50,
+      "exitCode": 1,
+      "outerTerminated": false,
+      "ownedPreviewStopped": true,
+      "durationSeconds": 2.0491107839989127,
+      "finishedAt": "2026-11-25T23:12:42.960792+00:00",
+      "outcome": "blocked_by_os_ipc_restriction_before_global_probe",
+      "blockingReason": "FATAL:chrome/browser/process_singleton_posix.cc:292 Check failed: . socket() failed: Operation not permitted (1)",
+      "browserTerminationSignal": "SIGABRT",
+      "secondaryDiagnostic": "crashpad scoped_ptrace_attach: ptrace: Operation not permitted (1)",
+      "failureLocation": "scripts/browser-backend-setup.ts:11, chromium.launch"
+    },
+    "browserPageCreated": false,
+    "backendIdentityObserved": null,
+    "backendFramebufferProbeExecuted": false,
+    "backendReportCreated": false,
+    "testBodyExecuted": false,
+    "gameplayAssertionsExecuted": false,
+    "screenshotsCaptured": 0,
+    "screenshotsInspected": 0,
+    "nativeGameplayAccepted": false,
+    "physicalGpuValidated": false,
+    "performanceClaims": null,
+    "furtherNativeRetries": false
+  },
+  "cleanup": {
+    "ownedPreviewStopped": true,
+    "distAndPortReservationReleased": true,
+    "gitMutationsByAssignment": false,
+    "applicationSourceEditsByAssignment": false,
+    "protectedModelAssetEnvironmentEditsByAssignment": false,
+    "npmLifecycleGenerationHooksInvoked": false
+  },
+  "notes": [
+    "The first launch attempt let the existing Playwright webServer configuration invoke npm run preview; preview has no pre/post hook and preserved all protected inputs. The repaired attempt used a direct Vite preview in the same process namespace, verified its HTTP BUILD_IDENTITY and reused it.",
+    "Neither launch attempt reached the game or the requested SwiftShader global probe. These are environment failures, not evidence that gameplay passed or failed.",
+    "All native gameplay/GPU assertions remain unexecuted. The parent instructed no IPC workaround or further native retry."
+  ],
+  "retainedArtifacts": [
+    {
+      "path": "docs/engine/mx-dynamics-2026-11-25/evidence/44-native-browser-build.log",
+      "bytes": 3881,
+      "sha256": "c2d845ee0e5a933fd48485be77e24013f3bd1a77b323f94e059508995163a31c",
+      "content": "unmodified full process log"
+    },
+    {
+      "path": "docs/engine/mx-dynamics-2026-11-25/evidence/44-native-browser-system-launch.log",
+      "bytes": 8926,
+      "sha256": "835eed33899ac01152a485027e9a03c6d4522fc98f92a2296c679e242ea1d33c",
+      "content": "unmodified full process log"
+    },
+    {
+      "path": "docs/engine/mx-dynamics-2026-11-25/evidence/44-native-browser-install.log",
+      "bytes": 9615,
+      "sha256": "9f77aa32087d596b3667eb6e2bbf712e554e92f08d329a9ccf83a50d9391c156",
+      "content": "unmodified full process log"
+    },
+    {
+      "path": "docs/engine/mx-dynamics-2026-11-25/evidence/44-native-browser-ipc-launch.log",
+      "bytes": 9297,
+      "sha256": "2a00629e2d08973e55f8568957fcfcb2276846b7b178ecb6292a405cac634e5d",
+      "content": "unmodified full process log"
+    }
+  ]
+}

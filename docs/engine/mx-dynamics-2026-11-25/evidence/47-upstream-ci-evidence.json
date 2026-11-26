@@ -1,0 +1,93 @@
+{
+  "baselineSourceCommit": "2578271913c264f5ffd6131afea30723df14b65b",
+  "reportCommit": "c9c94c7029dbc3e29b18101ef7ccea0a897184d1",
+  "sourceLogPath": "ci-reports/logs/build-and-validation/offroad-scenarios.log",
+  "sourceLogSHA256": "e703d03914fffddc662f881b153866fb8df42abb70c8d40eaaec3345084a252b",
+  "workflowUrl": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45700444387",
+  "excerpt": [
+    {
+      "line": 3,
+      "text": "229:offroad-scenarios\tUNKNOWN STEP\t2026-11-25T21:08:10.6536939Z FAIL event valley-ridge-mx-moto-1: one rider crashed 3 times in 4 laps (rider 9: contact at 518.5 m (65.0 s), crash-front at 593.8 m (182.5 s), contact at 182.9 m (413.4 s))"
+    },
+    {
+      "line": 72,
+      "text": "offroad-scenarios\tUNKNOWN STEP\t2026-11-25T21:01:56.8937136Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +2578271913c264f5ffd6131afea30723df14b65b:refs/remotes/origin/main"
+    },
+    {
+      "line": 74,
+      "text": "offroad-scenarios\tUNKNOWN STEP\t2026-11-25T21:02:19.8014743Z  * [new ref]         2578271913c264f5ffd6131afea30723df14b65b -> origin/main"
+    },
+    {
+      "line": 141,
+      "text": "offroad-scenarios\tUNKNOWN STEP\t2026-11-25T21:02:21.9270951Z 2578271913c264f5ffd6131afea30723df14b65b"
+    },
+    {
+      "line": 144,
+      "text": "offroad-scenarios\tUNKNOWN STEP\t2026-11-25T21:02:21.9489535Z   node-version: 22"
+    },
+    {
+      "line": 202,
+      "text": "offroad-scenarios\tUNKNOWN STEP\t2026-11-25T21:05:03.2567660Z event valley-ridge-mx-moto-1: 408.64 s race, 30.3 s wall, crashes [0,0,1,0,0,0,0,1,0,3] (0.13/rider-lap), longest stop 11.1 s, terrain 57449 cells / 3.9 cm, holeshot car 8"
+    },
+    {
+      "line": 208,
+      "text": "offroad-scenarios\tUNKNOWN STEP\t2026-11-25T21:08:10.6536939Z FAIL event valley-ridge-mx-moto-1: one rider crashed 3 times in 4 laps (rider 9: contact at 518.5 m (65.0 s), crash-front at 593.8 m (182.5 s), contact at 182.9 m (413.4 s))"
+    }
+  ],
+  "selectedFileComparison": [
+    {
+      "path": "scripts/offroad-races.ts",
+      "baselineSHA256": "0535744434ca50ab792d206259f454336172de7f39ab969a3411404d08f532b0",
+      "currentSHA256": "0535744434ca50ab792d206259f454336172de7f39ab969a3411404d08f532b0",
+      "sameBytes": true
+    },
+    {
+      "path": "scripts/offroad-calibration.ts",
+      "baselineSHA256": "a994af9827d5587dd015533290a5725d458b80e2c176ef74915a73de08672718",
+      "currentSHA256": "a994af9827d5587dd015533290a5725d458b80e2c176ef74915a73de08672718",
+      "sameBytes": true
+    },
+    {
+      "path": "src/simulation/events.ts",
+      "baselineSHA256": "adf92e82801c967a01952543f3ebcd6061249d8345c6938f5668aaabf50f03d4",
+      "currentSHA256": "adf92e82801c967a01952543f3ebcd6061249d8345c6938f5668aaabf50f03d4",
+      "sameBytes": true
+    },
+    {
+      "path": "src/simulation/config.ts",
+      "baselineSHA256": "306cc0b5f5aaa0e3b2e11fb61ce59337a772eb2ca90844ddfcd34430398c1f0e",
+      "currentSHA256": "306cc0b5f5aaa0e3b2e11fb61ce59337a772eb2ca90844ddfcd34430398c1f0e",
+      "sameBytes": true
+    },
+    {
+      "path": "src/simulation/offroad/venues.ts",
+      "baselineSHA256": "6312ea30e1d79acf3d45f990be526b3e2db032a9d6cb8a442c6d2532cbfcd3c3",
+      "currentSHA256": "6312ea30e1d79acf3d45f990be526b3e2db032a9d6cb8a442c6d2532cbfcd3c3",
+      "sameBytes": true
+    },
+    {
+      "path": "src/simulation/world.ts",
+      "baselineSHA256": "bfc08c1d8e3237ccf7a4e69eb1234022316eea3540b9e58252eb0d863ca8f6f1",
+      "currentSHA256": "bfc08c1d8e3237ccf7a4e69eb1234022316eea3540b9e58252eb0d863ca8f6f1",
+      "sameBytes": true
+    },
+    {
+      "path": "src/simulation/offroad/ai.ts",
+      "baselineSHA256": "c6b3279324d8f52c3d29208e466fb61862d63b800b4c89539f5515ebb3ec1a0e",
+      "currentSHA256": "701fa894de6ae3455ce5cbef1f0351478691815883443b6d158e324775407260",
+      "sameBytes": false
+    },
+    {
+      "path": "src/simulation/offroad/dirt-bike-vehicle.ts",
+      "baselineSHA256": "e04318b7e4c6075d42a6c65cc04664a19e5425e20e50f49a1b1ad4f37084ea17",
+      "currentSHA256": "7a72b2747d4469bc652ce965afab4a8f94a7b1606073291c6d36045182b9361e",
+      "sameBytes": false
+    },
+    {
+      "path": "src/simulation/offroad/mx-ground-physics.ts",
+      "baselineSHA256": "f63a9f4389c27e191a8cd638774e7d5f2f35e60fd557d2285a9bdbbaab982c4d",
+      "currentSHA256": "68b04234548a2b037f4769d38343c26ec712a61fd9261fd6dac44641c81ca4e3",
+      "sameBytes": false
+    }
+  ]
+}

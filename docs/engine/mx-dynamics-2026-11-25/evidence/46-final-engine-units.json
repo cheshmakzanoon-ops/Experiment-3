@@ -1,0 +1,1780 @@
+{
+  "assignment": 46,
+  "phase": "final authoritative full sweep",
+  "generatedUtc": "2026-11-26T00:14:50.179043+00:00",
+  "status": "passed",
+  "scope": "Every repository test file with basename motocross*.test.ts or offroad*.test.ts",
+  "aggregate": {
+    "distinctFiles": 155,
+    "fileStatusCounts": {
+      "passed": 155
+    },
+    "distinctTestCases": 1736,
+    "assertionStatusCounts": {
+      "passed": 1736
+    },
+    "vitestPending": 0,
+    "vitestTodo": 0,
+    "countingRule": "Only this completed final run contributes counts. Interrupted, historical full and overlapping targeted runs are excluded."
+  },
+  "sourceIdentity": {
+    "expectedFingerprint": "4c041cb338d0fa480e0514ee905137a24061494b98b9899949238f6b137be790",
+    "before": "4c041cb338d0fa480e0514ee905137a24061494b98b9899949238f6b137be790",
+    "after": "4c041cb338d0fa480e0514ee905137a24061494b98b9899949238f6b137be790",
+    "atReport": "4c041cb338d0fa480e0514ee905137a24061494b98b9899949238f6b137be790",
+    "sourceInputCount": 1129,
+    "algorithm": "SHA-256 of lexically sorted POSIX path + NUL + bytes + NUL; all src files plus package-lock.json, index.html and vite.config.ts",
+    "differencesFromHistoricalSweep": [
+      {
+        "path": "src/simulation/offroad/ai.ts",
+        "historicalSha256": "701fa894de6ae3455ce5cbef1f0351478691815883443b6d158e324775407260",
+        "finalSha256": "48b1a697e912e999dc04b423bdf3fab1fdf0204c7f656717d2063ea311e94462"
+      }
+    ]
+  },
+  "execution": {
+    "cwd": "/home/agent/motobound-579b454ae846",
+    "commandArgv": [
+      "node",
+      "--max-old-space-size=1024",
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "--maxWorkers=1",
+      "--reporter=default",
+      "--reporter=json",
+      "--outputFile=test-results/agent46/final-vitest.json",
+      "tests/motocross-ai.test.ts",
+      "tests/motocross-air-drag.test.ts",
+      "tests/motocross-arena-lighting.test.ts",
+      "tests/motocross-arena-weather.test.ts",
+      "tests/motocross-assembly-occlusion.test.ts",
+      "tests/motocross-authored-kit.test.ts",
+      "tests/motocross-automatic-shift.test.ts",
+      "tests/motocross-ballistic-timing.test.ts",
+      "tests/motocross-berm-lines.test.ts",
+      "tests/motocross-berm-practice.test.ts",
+      "tests/motocross-body-input.test.ts",
+      "tests/motocross-body-pose.test.ts",
+      "tests/motocross-body-transport.test.ts",
+      "tests/motocross-bodywork.test.ts",
+      "tests/motocross-boundary-tape.test.ts",
+      "tests/motocross-bounded-stops.test.ts",
+      "tests/motocross-brake-budget.test.ts",
+      "tests/motocross-brake-cue.test.ts",
+      "tests/motocross-braking-bumps.test.ts",
+      "tests/motocross-broadcast-controls.test.ts",
+      "tests/motocross-broadcast-placement.test.ts",
+      "tests/motocross-camera-flight-origin.test.ts",
+      "tests/motocross-camera-motion-ramp.test.ts",
+      "tests/motocross-camera-ramp.test.ts",
+      "tests/motocross-camera.test.ts",
+      "tests/motocross-castings.test.ts",
+      "tests/motocross-chain-drive.test.ts",
+      "tests/motocross-cockpit-view.test.ts",
+      "tests/motocross-collision.test.ts",
+      "tests/motocross-contact-consistency.test.ts",
+      "tests/motocross-contact-impulse.test.ts",
+      "tests/motocross-contact-reset.test.ts",
+      "tests/motocross-contact-time-coherence.test.ts",
+      "tests/motocross-contact-traction.test.ts",
+      "tests/motocross-contact-work-isolation.test.ts",
+      "tests/motocross-control-animation.test.ts",
+      "tests/motocross-cooling-wheels.test.ts",
+      "tests/motocross-cornering-reserve.test.ts",
+      "tests/motocross-coupled-invariants.test.ts",
+      "tests/motocross-coupled-step-contract.test.ts",
+      "tests/motocross-coupled-stops.test.ts",
+      "tests/motocross-course-landmarks.test.ts",
+      "tests/motocross-course-sites.test.ts",
+      "tests/motocross-course-wear.test.ts",
+      "tests/motocross-cross-slope.test.ts",
+      "tests/motocross-dab-ground.test.ts",
+      "tests/motocross-drive-budget.test.ts",
+      "tests/motocross-drive-reserve.test.ts",
+      "tests/motocross-dust-ground.test.ts",
+      "tests/motocross-dynamic-suspension.test.ts",
+      "tests/motocross-dynamics-replay.test.ts",
+      "tests/motocross-environment.test.ts",
+      "tests/motocross-equipment-contact.test.ts",
+      "tests/motocross-equipment-surface.test.ts",
+      "tests/motocross-feather-flags.test.ts",
+      "tests/motocross-final-contact-frame.test.ts",
+      "tests/motocross-finish-line.test.ts",
+      "tests/motocross-flow-practice.test.ts",
+      "tests/motocross-foot-boundary.test.ts",
+      "tests/motocross-foot-reconstruction.test.ts",
+      "tests/motocross-forgiving-handling.test.ts",
+      "tests/motocross-front-steering-authority.test.ts",
+      "tests/motocross-garment.test.ts",
+      "tests/motocross-gate-placement.test.ts",
+      "tests/motocross-get-up.test.ts",
+      "tests/motocross-grass-tufts.test.ts",
+      "tests/motocross-grid-preparation.test.ts",
+      "tests/motocross-ground-frame-transport.test.ts",
+      "tests/motocross-ground-passivity.test.ts",
+      "tests/motocross-ground-physics.test.ts",
+      "tests/motocross-hard-stop-integration.test.ts",
+      "tests/motocross-heading-guard.test.ts",
+      "tests/motocross-hidden-transforms.test.ts",
+      "tests/motocross-hud.test.ts",
+      "tests/motocross-interrupted-shift-contact.test.ts",
+      "tests/motocross-joint-reversal.test.ts",
+      "tests/motocross-jump-corridor.test.ts",
+      "tests/motocross-jump-traffic-priority.test.ts",
+      "tests/motocross-landing-challenge.test.ts",
+      "tests/motocross-landing-momentum.test.ts",
+      "tests/motocross-landing-observability.test.ts",
+      "tests/motocross-landing-plan.test.ts",
+      "tests/motocross-landing-prediction.test.ts",
+      "tests/motocross-lane-index.test.ts",
+      "tests/motocross-lever-contact.test.ts",
+      "tests/motocross-live-pose-coherence.test.ts",
+      "tests/motocross-loose-soil.test.ts",
+      "tests/motocross-machine-animation.test.ts",
+      "tests/motocross-meadow-lifecycle.test.ts",
+      "tests/motocross-meadow.test.ts",
+      "tests/motocross-mechanics.test.ts",
+      "tests/motocross-metal-finish.test.ts",
+      "tests/motocross-motion-boundary.test.ts",
+      "tests/motocross-mouldings.test.ts",
+      "tests/motocross-pass-and-ridges.test.ts",
+      "tests/motocross-photographic-light.test.ts",
+      "tests/motocross-planar-transport.test.ts",
+      "tests/motocross-plastic-wear.test.ts",
+      "tests/motocross-player-dynamics.test.ts",
+      "tests/motocross-posture-dynamics.test.ts",
+      "tests/motocross-posture-transport.test.ts",
+      "tests/motocross-presentation.test.ts",
+      "tests/motocross-push-gait.test.ts",
+      "tests/motocross-race-control.test.ts",
+      "tests/motocross-recovery-replay.test.ts",
+      "tests/motocross-reference-geometry.test.ts",
+      "tests/motocross-reference-review.test.ts",
+      "tests/motocross-remount-continuity.test.ts",
+      "tests/motocross-remount-handoff.test.ts",
+      "tests/motocross-rhythm-coach.test.ts",
+      "tests/motocross-rider-blending.test.ts",
+      "tests/motocross-rider-equipment.test.ts",
+      "tests/motocross-rider-motion.test.ts",
+      "tests/motocross-rider-recovery.test.ts",
+      "tests/motocross-rider-sight.test.ts",
+      "tests/motocross-rider-timing.test.ts",
+      "tests/motocross-rider-weight.test.ts",
+      "tests/motocross-riding.test.ts",
+      "tests/motocross-roost-budget.test.ts",
+      "tests/motocross-roost-contact.test.ts",
+      "tests/motocross-roost-deflector.test.ts",
+      "tests/motocross-rotor-phase-energy.test.ts",
+      "tests/motocross-rut-contact.test.ts",
+      "tests/motocross-screen-capture.test.ts",
+      "tests/motocross-shift-continuity.test.ts",
+      "tests/motocross-shift-extrema.test.ts",
+      "tests/motocross-shoulder-load-continuity.test.ts",
+      "tests/motocross-shoulder-plants.test.ts",
+      "tests/motocross-shoulder-recovery.test.ts",
+      "tests/motocross-slope-momentum.test.ts",
+      "tests/motocross-snapshot-cadence.test.ts",
+      "tests/motocross-soil-morphology.test.ts",
+      "tests/motocross-soil-parallax.test.ts",
+      "tests/motocross-soil-pickup.test.ts",
+      "tests/motocross-soil-transition.test.ts",
+      "tests/motocross-spectators.test.ts",
+      "tests/motocross-spine.test.ts",
+      "tests/motocross-sprung-pose.test.ts",
+      "tests/motocross-stadium-crowd.test.ts",
+      "tests/motocross-supported-convergence.test.ts",
+      "tests/motocross-terrain-continuity.test.ts",
+      "tests/motocross-terrain-shadow.test.ts",
+      "tests/motocross-textile-structure.test.ts",
+      "tests/motocross-thermal.test.ts",
+      "tests/motocross-timing-board.test.ts",
+      "tests/motocross-tyre-contact.test.ts",
+      "tests/motocross-tyre-finish.test.ts",
+      "tests/motocross-tyre-traces.test.ts",
+      "tests/motocross-uv-footprint.test.ts",
+      "tests/motocross-venue-integration.test.ts",
+      "tests/motocross-wheel-motion-consistency.test.ts",
+      "tests/motocross-wheel-pickup.test.ts",
+      "tests/motocross-worked-soil.test.ts",
+      "tests/offroad-meeting.test.ts",
+      "tests/offroad.test.ts"
+    ],
+    "startedUtc": "2026-11-26T00:03:40.445044+00:00",
+    "finishedUtc": "2026-11-26T00:13:49.296285+00:00",
+    "wallSeconds": 608.8118824060002,
+    "vitestExitCode": 0,
+    "workers": 1,
+    "nodeHeapLimitMiB": 1024,
+    "npmLifecycleHooksUsed": false,
+    "node": "v24.22.3",
+    "vitest": "3.2.4"
+  },
+  "integrityChecks": {
+    "sourceMatchesExpectedBefore": true,
+    "sourceMatchesExpectedAfter": true,
+    "sourceMatchesExpectedAtReport": true,
+    "allInputsUnchangedDuringRun": true,
+    "allInputsUnchangedAtReport": true,
+    "noDuplicateFileResults": true,
+    "resultsMatchExplicitSelection": true,
+    "resultsMatchFreshDiscovery": true,
+    "discoveryUnchangedDuringRun": true,
+    "assertionCountMatchesVitest": true,
+    "historicalEvidenceUnchanged": true
+  },
+  "changedInputsDuringRun": [],
+  "changedInputsSinceRun": [],
+  "manifestsBefore": {
+    "all-inputs": {
+      "path": "test-results/agent46/final-all-inputs-before.json",
+      "sha256": "cbc2df27b4dd5fb7713ab6abc5e9b1edb123a981a7b82f9afc74ec61f6e5edb5",
+      "entries": 1556
+    },
+    "source": {
+      "path": "test-results/agent46/final-source-before.json",
+      "sha256": "646c7c3ca71ef1db7778698031e70e0621d51831c27b0d062e27e2860c7f746d",
+      "entries": 1129
+    },
+    "tests": {
+      "path": "test-results/agent46/final-tests-before.json",
+      "sha256": "d929ca125c3c82d67e0f8e296f3f2d07dbdfda42a0daf07e6662dd346668b151",
+      "entries": 155
+    },
+    "protected-inputs": {
+      "path": "test-results/agent46/final-protected-inputs-before.json",
+      "sha256": "6dad2736051bba35092e97dcca565590e292261389279f7ea1539cad17066aee",
+      "entries": 255
+    },
+    "dependencies": {
+      "path": "test-results/agent46/final-dependencies-before.json",
+      "sha256": "abbe4b60032a0cfb74b867fed47094a6bdd4c951fef390448c27f853bd926a37",
+      "entries": 17
+    }
+  },
+  "manifestsAfter": {
+    "all-inputs": {
+      "path": "test-results/agent46/final-all-inputs-after.json",
+      "sha256": "cbc2df27b4dd5fb7713ab6abc5e9b1edb123a981a7b82f9afc74ec61f6e5edb5",
+      "entries": 1556
+    },
+    "source": {
+      "path": "test-results/agent46/final-source-after.json",
+      "sha256": "646c7c3ca71ef1db7778698031e70e0621d51831c27b0d062e27e2860c7f746d",
+      "entries": 1129
+    },
+    "tests": {
+      "path": "test-results/agent46/final-tests-after.json",
+      "sha256": "d929ca125c3c82d67e0f8e296f3f2d07dbdfda42a0daf07e6662dd346668b151",
+      "entries": 155
+    },
+    "protected-inputs": {
+      "path": "test-results/agent46/final-protected-inputs-after.json",
+      "sha256": "6dad2736051bba35092e97dcca565590e292261389279f7ea1539cad17066aee",
+      "entries": 255
+    },
+    "dependencies": {
+      "path": "test-results/agent46/final-dependencies-after.json",
+      "sha256": "abbe4b60032a0cfb74b867fed47094a6bdd4c951fef390448c27f853bd926a37",
+      "entries": 17
+    }
+  },
+  "manifestAtReport": {
+    "path": "test-results/agent46/final-inputs-at-report.json",
+    "sha256": "cbc2df27b4dd5fb7713ab6abc5e9b1edb123a981a7b82f9afc74ec61f6e5edb5",
+    "bytes": 239972
+  },
+  "effectiveFiles": [
+    {
+      "path": "tests/motocross-ai.test.ts",
+      "sha256": "9db15996c9d42cf26e92e8bb117b71ad7c73ae7ed06d715832527791417f97b6",
+      "status": "passed",
+      "tests": 42,
+      "assertionsByStatus": {
+        "passed": 42
+      }
+    },
+    {
+      "path": "tests/motocross-air-drag.test.ts",
+      "sha256": "7539d5f6feb1f9268896fcc3b0264b2385ac2a3321191b84b0a3a02a50e01c4a",
+      "status": "passed",
+      "tests": 22,
+      "assertionsByStatus": {
+        "passed": 22
+      }
+    },
+    {
+      "path": "tests/motocross-arena-lighting.test.ts",
+      "sha256": "cdef662dd450eac02404d5a2fbe95c6991e1f7184189c7a0b372db22b72b6ab9",
+      "status": "passed",
+      "tests": 8,
+      "assertionsByStatus": {
+        "passed": 8
+      }
+    },
+    {
+      "path": "tests/motocross-arena-weather.test.ts",
+      "sha256": "e24382dddb004ea0d5e561e3daa1e9ec87f8368e30a50c65b27da9ca10698ba3",
+      "status": "passed",
+      "tests": 4,
+      "assertionsByStatus": {
+        "passed": 4
+      }
+    },
+    {
+      "path": "tests/motocross-assembly-occlusion.test.ts",
+      "sha256": "e2b52d098efae727b66383447108f29580b9e414044dbf7a15a33ba93382d804",
+      "status": "passed",
+      "tests": 3,
+      "assertionsByStatus": {
+        "passed": 3
+      }
+    },
+    {
+      "path": "tests/motocross-authored-kit.test.ts",
+      "sha256": "56b98ffda564db83cce8738583658d6c4a892586d2e5712a092f4c0b5bb1c574",
+      "status": "passed",
+      "tests": 14,
+      "assertionsByStatus": {
+        "passed": 14
+      }
+    },
+    {
+      "path": "tests/motocross-automatic-shift.test.ts",
+      "sha256": "af8ec9a49cf93e09af60b13666cbfbbe7f5dc0ac6e81ed6085332cbe07d8823b",
+      "status": "passed",
+      "tests": 8,
+      "assertionsByStatus": {
+        "passed": 8
+      }
+    },
+    {
+      "path": "tests/motocross-ballistic-timing.test.ts",
+      "sha256": "6300d40039ee9077d14ad54253bd231206fed8e5c1a9e50de07f887abcfd9d10",
+      "status": "passed",
+      "tests": 13,
+      "assertionsByStatus": {
+        "passed": 13
+      }
+    },
+    {
+      "path": "tests/motocross-berm-lines.test.ts",
+      "sha256": "f66ee5db89107ca46830920d2c5c412cc93624fbb1dc698b4a665b844027cbb9",
+      "status": "passed",
+      "tests": 4,
+      "assertionsByStatus": {
+        "passed": 4
+      }
+    },
+    {
+      "path": "tests/motocross-berm-practice.test.ts",
+      "sha256": "96b8e8d54ffcc17ead68ac8198166337748b613719072979e9d918afc365cdaf",
+      "status": "passed",
+      "tests": 24,
+      "assertionsByStatus": {
+        "passed": 24
+      }
+    },
+    {
+      "path": "tests/motocross-body-input.test.ts",
+      "sha256": "039d513710bc0e37ba968897b3d15911b3c495f87882fc5c9e70f812435153d5",
+      "status": "passed",
+      "tests": 10,
+      "assertionsByStatus": {
+        "passed": 10
+      }
+    },
+    {
+      "path": "tests/motocross-body-pose.test.ts",
+      "sha256": "daf8d8ac140ae86244f3a9405ba4c097e61b2710bdb44b02cb67f59a55303e34",
+      "status": "passed",
+      "tests": 5,
+      "assertionsByStatus": {
+        "passed": 5
+      }
+    },
+    {
+      "path": "tests/motocross-body-transport.test.ts",
+      "sha256": "14c1cf960a3afb5a0f2de1c24c1572f3cf4ad7292cac54b6ded3995563998d4b",
+      "status": "passed",
+      "tests": 21,
+      "assertionsByStatus": {
+        "passed": 21
+      }
+    },
+    {
+      "path": "tests/motocross-bodywork.test.ts",
+      "sha256": "011f7b4bfff75581f987bd861eb2b6ba4b80ddeea594bcde543e1340e0673326",
+      "status": "passed",
+      "tests": 18,
+      "assertionsByStatus": {
+        "passed": 18
+      }
+    },
+    {
+      "path": "tests/motocross-boundary-tape.test.ts",
+      "sha256": "6eec88f209d3fcc2fb8f558502ce52277f2179801d8427de33ae8272a8bb1ac9",
+      "status": "passed",
+      "tests": 5,
+      "assertionsByStatus": {
+        "passed": 5
+      }
+    },
+    {
+      "path": "tests/motocross-bounded-stops.test.ts",
+      "sha256": "834fdbdf8fff1e5d9f5f04007c26c1dcd07422c22ffa7515caeaa3ec8911f394",
+      "status": "passed",
+      "tests": 13,
+      "assertionsByStatus": {
+        "passed": 13
+      }
+    },
+    {
+      "path": "tests/motocross-brake-budget.test.ts",
+      "sha256": "8d81d3c09e1bb12d7261e4e6d0f2de29b5fe697d3f34bf3e9690567f09fc219e",
+      "status": "passed",
+      "tests": 18,
+      "assertionsByStatus": {
+        "passed": 18
+      }
+    },
+    {
+      "path": "tests/motocross-brake-cue.test.ts",
+      "sha256": "e67f3b91a0d6a6b26294bad6f27dce7a72d2d1494006d77a7545e274187e3cc7",
+      "status": "passed",
+      "tests": 9,
+      "assertionsByStatus": {
+        "passed": 9
+      }
+    },
+    {
+      "path": "tests/motocross-braking-bumps.test.ts",
+      "sha256": "0edf2d2dc837726f969060f0c7b90f8da31be95e7dd68641e75ea8375b6cb38c",
+      "status": "passed",
+      "tests": 9,
+      "assertionsByStatus": {
+        "passed": 9
+      }
+    },
+    {
+      "path": "tests/motocross-broadcast-controls.test.ts",
+      "sha256": "94f7e86a960adbac6e7e9fe979de5173c2e85bdc5451524b45d204059a871237",
+      "status": "passed",
+      "tests": 56,
+      "assertionsByStatus": {
+        "passed": 56
+      }
+    },
+    {
+      "path": "tests/motocross-broadcast-placement.test.ts",
+      "sha256": "f000134d9ec9a829178ff247c0edfe66662757d2e23d19ab6dacc228d35ce642",
+      "status": "passed",
+      "tests": 2,
+      "assertionsByStatus": {
+        "passed": 2
+      }
+    },
+    {
+      "path": "tests/motocross-camera-flight-origin.test.ts",
+      "sha256": "4f28295c2246ac79e9dbbb646dc6d0f067461aac2d04c9f4293553f554c4163b",
+      "status": "passed",
+      "tests": 3,
+      "assertionsByStatus": {
+        "passed": 3
+      }
+    },
+    {
+      "path": "tests/motocross-camera-motion-ramp.test.ts",
+      "sha256": "72a91abe7dfbac0a1e57fc8946289e8ab0d0fc5020842cea15f1c492640b9244",
+      "status": "passed",
+      "tests": 15,
+      "assertionsByStatus": {
+        "passed": 15
+      }
+    },
+    {
+      "path": "tests/motocross-camera-ramp.test.ts",
+      "sha256": "eb9c160eaa4eea46c9929722594380ae960d5b978c9136bbd919753d8313404a",
+      "status": "passed",
+      "tests": 6,
+      "assertionsByStatus": {
+        "passed": 6
+      }
+    },
+    {
+      "path": "tests/motocross-camera.test.ts",
+      "sha256": "b3243e15f7ea508242f970e4f8ce478029545a09d57a3104dd7eba9615f0cc79",
+      "status": "passed",
+      "tests": 16,
+      "assertionsByStatus": {
+        "passed": 16
+      }
+    },
+    {
+      "path": "tests/motocross-castings.test.ts",
+      "sha256": "29d7a906d92885625d5b679f72dac0b852f9347a1bad0790303e4a4f317f326c",
+      "status": "passed",
+      "tests": 22,
+      "assertionsByStatus": {
+        "passed": 22
+      }
+    },
+    {
+      "path": "tests/motocross-chain-drive.test.ts",
+      "sha256": "7ec5f28d19215864d99f7b60411eed935b34f635f9e73a62ae3729c6d7353ccb",
+      "status": "passed",
+      "tests": 22,
+      "assertionsByStatus": {
+        "passed": 22
+      }
+    },
+    {
+      "path": "tests/motocross-cockpit-view.test.ts",
+      "sha256": "b524097fe3a66865b1d4646a3b24511edd350ecab8686f75b1ae12c8147805b6",
+      "status": "passed",
+      "tests": 6,
+      "assertionsByStatus": {
+        "passed": 6
+      }
+    },
+    {
+      "path": "tests/motocross-collision.test.ts",
+      "sha256": "b0c1013115f3046482e87dc554a27d9d06a7a4b73f60b2e673aa1db684b701ff",
+      "status": "passed",
+      "tests": 17,
+      "assertionsByStatus": {
+        "passed": 17
+      }
+    },
+    {
+      "path": "tests/motocross-contact-consistency.test.ts",
+      "sha256": "70b9dedcc8ad4df235596d6235b07439971bccf341fbfc2aecd3b63509cefd8a",
+      "status": "passed",
+      "tests": 20,
+      "assertionsByStatus": {
+        "passed": 20
+      }
+    },
+    {
+      "path": "tests/motocross-contact-impulse.test.ts",
+      "sha256": "a86f39b3f86d7d06b8f7c6acb798cfc6f28ff44f4564a8d921b5440c68ae623b",
+      "status": "passed",
+      "tests": 3,
+      "assertionsByStatus": {
+        "passed": 3
+      }
+    },
+    {
+      "path": "tests/motocross-contact-reset.test.ts",
+      "sha256": "231091b1c993d75bcb7f0327a3efe838ca332d921ae9adb69bb7f3bbe2a9ffe9",
+      "status": "passed",
+      "tests": 13,
+      "assertionsByStatus": {
+        "passed": 13
+      }
+    },
+    {
+      "path": "tests/motocross-contact-time-coherence.test.ts",
+      "sha256": "901a6d85dd1bf7e9254a7deebc5ebcb305d7d6dad892f7d50fecd236ec2bb196",
+      "status": "passed",
+      "tests": 15,
+      "assertionsByStatus": {
+        "passed": 15
+      }
+    },
+    {
+      "path": "tests/motocross-contact-traction.test.ts",
+      "sha256": "1f9b84d80f8661d1232e1e9299e9a31a9a8b76afc018268c7e15516df0865a4c",
+      "status": "passed",
+      "tests": 17,
+      "assertionsByStatus": {
+        "passed": 17
+      }
+    },
+    {
+      "path": "tests/motocross-contact-work-isolation.test.ts",
+      "sha256": "9e528d5bf7f4756b4989ba6ea920fe8434abe87627a5201695b28128a5a4474c",
+      "status": "passed",
+      "tests": 6,
+      "assertionsByStatus": {
+        "passed": 6
+      }
+    },
+    {
+      "path": "tests/motocross-control-animation.test.ts",
+      "sha256": "d0b4536f360f0be7dcc3a5646727b26c4a8f6641b48d49ada7aec97f07fe74c0",
+      "status": "passed",
+      "tests": 29,
+      "assertionsByStatus": {
+        "passed": 29
+      }
+    },
+    {
+      "path": "tests/motocross-cooling-wheels.test.ts",
+      "sha256": "b0c01fa3680b5af8dd1d09034df7ed9ca7b7b08300ce14a29952b231518d5ef1",
+      "status": "passed",
+      "tests": 13,
+      "assertionsByStatus": {
+        "passed": 13
+      }
+    },
+    {
+      "path": "tests/motocross-cornering-reserve.test.ts",
+      "sha256": "193c7df3fc742b2dbb15caaf88cf0c9e8ef02af16487896175acd5826e2d5eb5",
+      "status": "passed",
+      "tests": 3,
+      "assertionsByStatus": {
+        "passed": 3
+      }
+    },
+    {
+      "path": "tests/motocross-coupled-invariants.test.ts",
+      "sha256": "580cba992eb944e25d8290a3b72616a718fadc25c848fc3697c4ff325acaf584",
+      "status": "passed",
+      "tests": 10,
+      "assertionsByStatus": {
+        "passed": 10
+      }
+    },
+    {
+      "path": "tests/motocross-coupled-step-contract.test.ts",
+      "sha256": "518baccf0d91b7c9de21ec33afe9200cc6af756d106c0c3ba17f2f5d6eb5dcca",
+      "status": "passed",
+      "tests": 24,
+      "assertionsByStatus": {
+        "passed": 24
+      }
+    },
+    {
+      "path": "tests/motocross-coupled-stops.test.ts",
+      "sha256": "4abe5041e84fe3ba048a5be873279e6cfdd182bf08fda3787bd40327bae2b4ed",
+      "status": "passed",
+      "tests": 5,
+      "assertionsByStatus": {
+        "passed": 5
+      }
+    },
+    {
+      "path": "tests/motocross-course-landmarks.test.ts",
+      "sha256": "a9b0af3da120c726b7cade13f0797745a0c209e4412acc362d2d175f87579398",
+      "status": "passed",
+      "tests": 6,
+      "assertionsByStatus": {
+        "passed": 6
+      }
+    },
+    {
+      "path": "tests/motocross-course-sites.test.ts",
+      "sha256": "86d59813f33ad9a44f06c2e17c09f2ec8e41fd70e554d5a0d53e7bdcd7cce422",
+      "status": "passed",
+      "tests": 5,
+      "assertionsByStatus": {
+        "passed": 5
+      }
+    },
+    {
+      "path": "tests/motocross-course-wear.test.ts",
+      "sha256": "a8d3f3a785511ba1ee21e50caa1972e597bee67244cdda49e6dd1810cca81203",
+      "status": "passed",
+      "tests": 5,
+      "assertionsByStatus": {
+        "passed": 5
+      }
+    },
+    {
+      "path": "tests/motocross-cross-slope.test.ts",
+      "sha256": "ba8f890d63b565fb34736ccdfdce37c49a31c8d170b4c462c4f0f2979310363f",
+      "status": "passed",
+      "tests": 22,
+      "assertionsByStatus": {
+        "passed": 22
+      }
+    },
+    {
+      "path": "tests/motocross-dab-ground.test.ts",
+      "sha256": "739f0bd332db8819414a7fc7b9840c3855af0e6337363ed1d03cb0859960da27",
+      "status": "passed",
+      "tests": 4,
+      "assertionsByStatus": {
+        "passed": 4
+      }
+    },
+    {
+      "path": "tests/motocross-drive-budget.test.ts",
+      "sha256": "1c21f668c97d79e68e1756214bc3250e88091d5ebfb83f1f014fda843121374d",
+      "status": "passed",
+      "tests": 28,
+      "assertionsByStatus": {
+        "passed": 28
+      }
+    },
+    {
+      "path": "tests/motocross-drive-reserve.test.ts",
+      "sha256": "0ba89e1ae35bb0b7788245c28a824207d772357e823b0aaea170758a080b649f",
+      "status": "passed",
+      "tests": 6,
+      "assertionsByStatus": {
+        "passed": 6
+      }
+    },
+    {
+      "path": "tests/motocross-dust-ground.test.ts",
+      "sha256": "291bf50f6d8d666c62ed8ceeccd26bae0e06c862e8602b897a2224dac4b0ea33",
+      "status": "passed",
+      "tests": 2,
+      "assertionsByStatus": {
+        "passed": 2
+      }
+    },
+    {
+      "path": "tests/motocross-dynamic-suspension.test.ts",
+      "sha256": "e09d17ecc241508d90b3fd65bca723c8d5f02e021350e28c451d910b4ee5ae50",
+      "status": "passed",
+      "tests": 14,
+      "assertionsByStatus": {
+        "passed": 14
+      }
+    },
+    {
+      "path": "tests/motocross-dynamics-replay.test.ts",
+      "sha256": "13a306ecbdc3a9e797eace449f53f0664b70a85232237e535576d37b87d8e23f",
+      "status": "passed",
+      "tests": 10,
+      "assertionsByStatus": {
+        "passed": 10
+      }
+    },
+    {
+      "path": "tests/motocross-environment.test.ts",
+      "sha256": "576eb38251ca9260b0ca4b14d512f15e80641828dff4985359cca2c59dab2f2e",
+      "status": "passed",
+      "tests": 16,
+      "assertionsByStatus": {
+        "passed": 16
+      }
+    },
+    {
+      "path": "tests/motocross-equipment-contact.test.ts",
+      "sha256": "afc1d62e939901690796267223bc4438ba50f2a596c7951042275574ef248ef6",
+      "status": "passed",
+      "tests": 7,
+      "assertionsByStatus": {
+        "passed": 7
+      }
+    },
+    {
+      "path": "tests/motocross-equipment-surface.test.ts",
+      "sha256": "c0cf3e73905770e97632d058fa3e036821f7614de6cdf1bcf234966f759fc1c7",
+      "status": "passed",
+      "tests": 21,
+      "assertionsByStatus": {
+        "passed": 21
+      }
+    },
+    {
+      "path": "tests/motocross-feather-flags.test.ts",
+      "sha256": "c96ea804742d8effe889dadc8530c9f7c75ed1dc9f1ba1e86261d69794736d55",
+      "status": "passed",
+      "tests": 7,
+      "assertionsByStatus": {
+        "passed": 7
+      }
+    },
+    {
+      "path": "tests/motocross-final-contact-frame.test.ts",
+      "sha256": "b4cc950229fc0db55e14d91041f390cd1cddb87a6c74e6418f4628ce903ed175",
+      "status": "passed",
+      "tests": 9,
+      "assertionsByStatus": {
+        "passed": 9
+      }
+    },
+    {
+      "path": "tests/motocross-finish-line.test.ts",
+      "sha256": "61af8e36cd7a2696fce0bdfddb31828db99b1f87ca05b8d382cb27365e61d653",
+      "status": "passed",
+      "tests": 2,
+      "assertionsByStatus": {
+        "passed": 2
+      }
+    },
+    {
+      "path": "tests/motocross-flow-practice.test.ts",
+      "sha256": "6dd4b4388601a9a4696d0b088f7e131576f8e1fe889f6e80a7c6fb11ac71bd57",
+      "status": "passed",
+      "tests": 16,
+      "assertionsByStatus": {
+        "passed": 16
+      }
+    },
+    {
+      "path": "tests/motocross-foot-boundary.test.ts",
+      "sha256": "e69b8a8ed6a21468f730bf14bc8eb437e08b9155ac75414e0961897f085407e0",
+      "status": "passed",
+      "tests": 8,
+      "assertionsByStatus": {
+        "passed": 8
+      }
+    },
+    {
+      "path": "tests/motocross-foot-reconstruction.test.ts",
+      "sha256": "70a4d217607ea6e6ebc6c7e2764eea8ae9c691a7c36853e62bc8ab1c26b2ba65",
+      "status": "passed",
+      "tests": 11,
+      "assertionsByStatus": {
+        "passed": 11
+      }
+    },
+    {
+      "path": "tests/motocross-forgiving-handling.test.ts",
+      "sha256": "495119af76deed9cbf3cb4f8f8c889bab2aeb1d5e15c510f64e424adafab29d1",
+      "status": "passed",
+      "tests": 18,
+      "assertionsByStatus": {
+        "passed": 18
+      }
+    },
+    {
+      "path": "tests/motocross-front-steering-authority.test.ts",
+      "sha256": "36ebc718fad525ec446a485aaadeddafbb727f5f92ff819f34ce6c69f20ef6b3",
+      "status": "passed",
+      "tests": 12,
+      "assertionsByStatus": {
+        "passed": 12
+      }
+    },
+    {
+      "path": "tests/motocross-garment.test.ts",
+      "sha256": "0d25f7e7a9b8f22980a15fd5e4af927c17d389bc3958b67e46a7aec2ea119be7",
+      "status": "passed",
+      "tests": 8,
+      "assertionsByStatus": {
+        "passed": 8
+      }
+    },
+    {
+      "path": "tests/motocross-gate-placement.test.ts",
+      "sha256": "be993b8a77f4cd266127b074e5ee607f93a95dec161668c47348b9652777cc75",
+      "status": "passed",
+      "tests": 20,
+      "assertionsByStatus": {
+        "passed": 20
+      }
+    },
+    {
+      "path": "tests/motocross-get-up.test.ts",
+      "sha256": "0fcc9891cb2a9a9af75c98c3918f8dd47f64e45bb7f9d8cb25f39711cd92367c",
+      "status": "passed",
+      "tests": 5,
+      "assertionsByStatus": {
+        "passed": 5
+      }
+    },
+    {
+      "path": "tests/motocross-grass-tufts.test.ts",
+      "sha256": "1b7a9df185ce30ef99585b69ab2bf770f0134c1f484716931123cf113a72e8d9",
+      "status": "passed",
+      "tests": 3,
+      "assertionsByStatus": {
+        "passed": 3
+      }
+    },
+    {
+      "path": "tests/motocross-grid-preparation.test.ts",
+      "sha256": "e748e511204c4e532be2cac94aa171429d7965277f460c0727a88732383809dd",
+      "status": "passed",
+      "tests": 12,
+      "assertionsByStatus": {
+        "passed": 12
+      }
+    },
+    {
+      "path": "tests/motocross-ground-frame-transport.test.ts",
+      "sha256": "c0600147a484f36d39b29ba4f2be815044bb3bffbebd278fa449e0767c759c0b",
+      "status": "passed",
+      "tests": 8,
+      "assertionsByStatus": {
+        "passed": 8
+      }
+    },
+    {
+      "path": "tests/motocross-ground-passivity.test.ts",
+      "sha256": "9ba4a298e91241d43d0e9b85541a13138f00b00927ec11fae4dcf5d9e460916e",
+      "status": "passed",
+      "tests": 5,
+      "assertionsByStatus": {
+        "passed": 5
+      }
+    },
+    {
+      "path": "tests/motocross-ground-physics.test.ts",
+      "sha256": "efc97a7acc200b6c40b42f937bbceb3535d8a19f1d66ea2dbd7db75db52e7662",
+      "status": "passed",
+      "tests": 13,
+      "assertionsByStatus": {
+        "passed": 13
+      }
+    },
+    {
+      "path": "tests/motocross-hard-stop-integration.test.ts",
+      "sha256": "01c8959340bfde433ad11cfab9fda4dd4e8e1b6a961ad1e44085ae220329ab66",
+      "status": "passed",
+      "tests": 12,
+      "assertionsByStatus": {
+        "passed": 12
+      }
+    },
+    {
+      "path": "tests/motocross-heading-guard.test.ts",
+      "sha256": "701413b0d92f40bd41c79d85b60bed748515c4438e90c6ca10d9b4ce62923f39",
+      "status": "passed",
+      "tests": 6,
+      "assertionsByStatus": {
+        "passed": 6
+      }
+    },
+    {
+      "path": "tests/motocross-hidden-transforms.test.ts",
+      "sha256": "90e2be30e51ab6817c227d5c76a4b9be5adefc529a838fb16fbc1779b5de5878",
+      "status": "passed",
+      "tests": 4,
+      "assertionsByStatus": {
+        "passed": 4
+      }
+    },
+    {
+      "path": "tests/motocross-hud.test.ts",
+      "sha256": "07e7a51cfd511319e7d743c4bf505e01644b5208b8db98eed8be3fcace31b62d",
+      "status": "passed",
+      "tests": 28,
+      "assertionsByStatus": {
+        "passed": 28
+      }
+    },
+    {
+      "path": "tests/motocross-interrupted-shift-contact.test.ts",
+      "sha256": "5206cc50b3d6f60bbe32ca348e4f149277d1b47c5cd07ea46a025e80f2ad29b6",
+      "status": "passed",
+      "tests": 6,
+      "assertionsByStatus": {
+        "passed": 6
+      }
+    },
+    {
+      "path": "tests/motocross-joint-reversal.test.ts",
+      "sha256": "af98eae832652a9e925375ce3d72b3b52b307388ff16b3832a6fef9c545aa4b3",
+      "status": "passed",
+      "tests": 30,
+      "assertionsByStatus": {
+        "passed": 30
+      }
+    },
+    {
+      "path": "tests/motocross-jump-corridor.test.ts",
+      "sha256": "6cd4682fb4cff98d583a7ff645ca6a817d4d076906d03005441621e46cfed86b",
+      "status": "passed",
+      "tests": 14,
+      "assertionsByStatus": {
+        "passed": 14
+      }
+    },
+    {
+      "path": "tests/motocross-jump-traffic-priority.test.ts",
+      "sha256": "640a7d4bf1cbe3cc78b3f3dca734953f72bbbc86288ef1d974ec831e375c49d5",
+      "status": "passed",
+      "tests": 5,
+      "assertionsByStatus": {
+        "passed": 5
+      }
+    },
+    {
+      "path": "tests/motocross-landing-challenge.test.ts",
+      "sha256": "580c69007af70a729fa5c589183d29fde3624c9f6d2d4b96138402379667b425",
+      "status": "passed",
+      "tests": 17,
+      "assertionsByStatus": {
+        "passed": 17
+      }
+    },
+    {
+      "path": "tests/motocross-landing-momentum.test.ts",
+      "sha256": "e23716fc345d076cd2a2e04119810e99e4db5d81e46572b289865c233ff82063",
+      "status": "passed",
+      "tests": 11,
+      "assertionsByStatus": {
+        "passed": 11
+      }
+    },
+    {
+      "path": "tests/motocross-landing-observability.test.ts",
+      "sha256": "8ed5d637f4f20db83df269447ab215d2875aa91e65e645c8bc504fb9a6336ab7",
+      "status": "passed",
+      "tests": 9,
+      "assertionsByStatus": {
+        "passed": 9
+      }
+    },
+    {
+      "path": "tests/motocross-landing-plan.test.ts",
+      "sha256": "923897cfbbe7c834a32935e052a16e9a427b8344fde9e55df8ce40b1572a8b59",
+      "status": "passed",
+      "tests": 9,
+      "assertionsByStatus": {
+        "passed": 9
+      }
+    },
+    {
+      "path": "tests/motocross-landing-prediction.test.ts",
+      "sha256": "cefebe8149867049ba0426b391e5b7ec258bf64663a347cb6545ebe5e585596d",
+      "status": "passed",
+      "tests": 12,
+      "assertionsByStatus": {
+        "passed": 12
+      }
+    },
+    {
+      "path": "tests/motocross-lane-index.test.ts",
+      "sha256": "c8dcb32da5c6117e3cd5aede1ea0c4c148dd1216a04d6cd48d7b5320a5e76a11",
+      "status": "passed",
+      "tests": 2,
+      "assertionsByStatus": {
+        "passed": 2
+      }
+    },
+    {
+      "path": "tests/motocross-lever-contact.test.ts",
+      "sha256": "61528be4a4d1ea1038f4b689955480f8a2a28dcdd22efec6c02e3f371050d8f9",
+      "status": "passed",
+      "tests": 4,
+      "assertionsByStatus": {
+        "passed": 4
+      }
+    },
+    {
+      "path": "tests/motocross-live-pose-coherence.test.ts",
+      "sha256": "d055e3ceb79441291f953a3b6abf0cd662e45e07c8699863092836bcb440f08b",
+      "status": "passed",
+      "tests": 9,
+      "assertionsByStatus": {
+        "passed": 9
+      }
+    },
+    {
+      "path": "tests/motocross-loose-soil.test.ts",
+      "sha256": "6b0ca31bfc51f6a03c7ab3792c5d9e54569674c7a7482d8d8781455947a5e8c2",
+      "status": "passed",
+      "tests": 6,
+      "assertionsByStatus": {
+        "passed": 6
+      }
+    },
+    {
+      "path": "tests/motocross-machine-animation.test.ts",
+      "sha256": "21e2a94c436375e34f623070e36df3f71bb8541b516025f71b06783fa09e6f88",
+      "status": "passed",
+      "tests": 5,
+      "assertionsByStatus": {
+        "passed": 5
+      }
+    },
+    {
+      "path": "tests/motocross-meadow-lifecycle.test.ts",
+      "sha256": "e573a23be252099ee4b7b95c3cb68015c02362737bd1db6e76e97943e7c21897",
+      "status": "passed",
+      "tests": 10,
+      "assertionsByStatus": {
+        "passed": 10
+      }
+    },
+    {
+      "path": "tests/motocross-meadow.test.ts",
+      "sha256": "6c839a335f12842ed8ecc0d8e629ef6c1c56365118f4f05ca83c7449d83c3636",
+      "status": "passed",
+      "tests": 3,
+      "assertionsByStatus": {
+        "passed": 3
+      }
+    },
+    {
+      "path": "tests/motocross-mechanics.test.ts",
+      "sha256": "73744564a8facf194bad0abbd2633655ad3fac924fcaffd4ae24beaa266ff060",
+      "status": "passed",
+      "tests": 28,
+      "assertionsByStatus": {
+        "passed": 28
+      }
+    },
+    {
+      "path": "tests/motocross-metal-finish.test.ts",
+      "sha256": "5d9b9f528f1335b55b772721a00af51387bafe8601e4e2be1bfe9728b1a479ea",
+      "status": "passed",
+      "tests": 7,
+      "assertionsByStatus": {
+        "passed": 7
+      }
+    },
+    {
+      "path": "tests/motocross-motion-boundary.test.ts",
+      "sha256": "64f7bb33545a2a60946fc06f880329dbeff9a8991af04cb716fdcaf4901cffa9",
+      "status": "passed",
+      "tests": 9,
+      "assertionsByStatus": {
+        "passed": 9
+      }
+    },
+    {
+      "path": "tests/motocross-mouldings.test.ts",
+      "sha256": "a6798a993ee1cdf9999c24925fe96d4b5f40ff3cd816c07e4387db3edf13c052",
+      "status": "passed",
+      "tests": 23,
+      "assertionsByStatus": {
+        "passed": 23
+      }
+    },
+    {
+      "path": "tests/motocross-pass-and-ridges.test.ts",
+      "sha256": "c32db3ad1874643c122d2630c09ff3c332231b896e282e4b43908c58499dd7c8",
+      "status": "passed",
+      "tests": 6,
+      "assertionsByStatus": {
+        "passed": 6
+      }
+    },
+    {
+      "path": "tests/motocross-photographic-light.test.ts",
+      "sha256": "8acc0d3445ebfdf67498d5b647c882e270f8157a8cd677ca5d307a2b9a6af8cf",
+      "status": "passed",
+      "tests": 6,
+      "assertionsByStatus": {
+        "passed": 6
+      }
+    },
+    {
+      "path": "tests/motocross-planar-transport.test.ts",
+      "sha256": "a662a399cc1170ff5dcc8b2bfef4bf1dff8e35f4d124eecce3c295ea232db15f",
+      "status": "passed",
+      "tests": 16,
+      "assertionsByStatus": {
+        "passed": 16
+      }
+    },
+    {
+      "path": "tests/motocross-plastic-wear.test.ts",
+      "sha256": "7400daa2071ba68fbbb8a515bd68dc073cc741b6481498609776bd482fefbba4",
+      "status": "passed",
+      "tests": 1,
+      "assertionsByStatus": {
+        "passed": 1
+      }
+    },
+    {
+      "path": "tests/motocross-player-dynamics.test.ts",
+      "sha256": "59b7575afc3ee2b11594546da0dfb15abc5c9aa733c3344776181e9472f6f31e",
+      "status": "passed",
+      "tests": 20,
+      "assertionsByStatus": {
+        "passed": 20
+      }
+    },
+    {
+      "path": "tests/motocross-posture-dynamics.test.ts",
+      "sha256": "8624ee36996dc4cd53b7f8878d081141eb081bc81a09b8ec3bce7302147ce39f",
+      "status": "passed",
+      "tests": 9,
+      "assertionsByStatus": {
+        "passed": 9
+      }
+    },
+    {
+      "path": "tests/motocross-posture-transport.test.ts",
+      "sha256": "5207e38abae19fda0730dccda6540c60affed3e641c78d8869425f0a2d2760b8",
+      "status": "passed",
+      "tests": 15,
+      "assertionsByStatus": {
+        "passed": 15
+      }
+    },
+    {
+      "path": "tests/motocross-presentation.test.ts",
+      "sha256": "58204fd4902d1ef3746ec7672eb0efe77a55c0d3f33cd8b6bcc4804f89630e62",
+      "status": "passed",
+      "tests": 4,
+      "assertionsByStatus": {
+        "passed": 4
+      }
+    },
+    {
+      "path": "tests/motocross-push-gait.test.ts",
+      "sha256": "ed33b4345529827d5bb22351f01fa24a3782adefa34f7df13f0015f9bd06e248",
+      "status": "passed",
+      "tests": 2,
+      "assertionsByStatus": {
+        "passed": 2
+      }
+    },
+    {
+      "path": "tests/motocross-race-control.test.ts",
+      "sha256": "1a84ae4821009370cafb8da78c56a1af80cd76f50f49927545dfb770e377916f",
+      "status": "passed",
+      "tests": 6,
+      "assertionsByStatus": {
+        "passed": 6
+      }
+    },
+    {
+      "path": "tests/motocross-recovery-replay.test.ts",
+      "sha256": "7e8d40351f80343adc6ee737da5140717425be47548dcef0ab26846942c2ba82",
+      "status": "passed",
+      "tests": 4,
+      "assertionsByStatus": {
+        "passed": 4
+      }
+    },
+    {
+      "path": "tests/motocross-reference-geometry.test.ts",
+      "sha256": "fcba3b0964286749dd452c30736744b619e22048a9fac7fbb5ecff8e20cb3750",
+      "status": "passed",
+      "tests": 10,
+      "assertionsByStatus": {
+        "passed": 10
+      }
+    },
+    {
+      "path": "tests/motocross-reference-review.test.ts",
+      "sha256": "a344e58a6aa4a7b3673e8fcc2947fd3fb669230bd10a17537e53b92e3c81444f",
+      "status": "passed",
+      "tests": 2,
+      "assertionsByStatus": {
+        "passed": 2
+      }
+    },
+    {
+      "path": "tests/motocross-remount-continuity.test.ts",
+      "sha256": "de6d4f447f7a7ae5fedad68f7972c1cd5bc386eb9c06a4e78f541be3651bf44b",
+      "status": "passed",
+      "tests": 18,
+      "assertionsByStatus": {
+        "passed": 18
+      }
+    },
+    {
+      "path": "tests/motocross-remount-handoff.test.ts",
+      "sha256": "0c54ab92253f559d9852a868fc9c66aa1c9f8b4fbb3b91b5cbc1f8adb6628d47",
+      "status": "passed",
+      "tests": 27,
+      "assertionsByStatus": {
+        "passed": 27
+      }
+    },
+    {
+      "path": "tests/motocross-rhythm-coach.test.ts",
+      "sha256": "7bf5b95f69f2bc6aadc41dc9c2765c02ec71f8b99936dff3343790d8867cfc26",
+      "status": "passed",
+      "tests": 11,
+      "assertionsByStatus": {
+        "passed": 11
+      }
+    },
+    {
+      "path": "tests/motocross-rider-blending.test.ts",
+      "sha256": "f3c42dd285ed4c00e003861533e6e95ff453502858e94f5e20bfd168120f7f2e",
+      "status": "passed",
+      "tests": 8,
+      "assertionsByStatus": {
+        "passed": 8
+      }
+    },
+    {
+      "path": "tests/motocross-rider-equipment.test.ts",
+      "sha256": "2eb9b54fed02515dd7a011f05b7029bfc904860a8bc4d509b5e05553c05b23f2",
+      "status": "passed",
+      "tests": 10,
+      "assertionsByStatus": {
+        "passed": 10
+      }
+    },
+    {
+      "path": "tests/motocross-rider-motion.test.ts",
+      "sha256": "04cb579391893f5d2f89dcaf7540e86020d610357ef3b11487a581f11fb898a6",
+      "status": "passed",
+      "tests": 19,
+      "assertionsByStatus": {
+        "passed": 19
+      }
+    },
+    {
+      "path": "tests/motocross-rider-recovery.test.ts",
+      "sha256": "8843153a043b35a00af3921c7f548454dce4f94ecb23be51aed1e30d40d7caa4",
+      "status": "passed",
+      "tests": 2,
+      "assertionsByStatus": {
+        "passed": 2
+      }
+    },
+    {
+      "path": "tests/motocross-rider-sight.test.ts",
+      "sha256": "51de9f63952a9430d46d710e940f5d6a4a8149f5067e094fa1aa8ebc08c29b53",
+      "status": "passed",
+      "tests": 6,
+      "assertionsByStatus": {
+        "passed": 6
+      }
+    },
+    {
+      "path": "tests/motocross-rider-timing.test.ts",
+      "sha256": "3d8d932ee0c05d9a94b839fefad6ba54cf631683d123579d017770b81f1af6ad",
+      "status": "passed",
+      "tests": 7,
+      "assertionsByStatus": {
+        "passed": 7
+      }
+    },
+    {
+      "path": "tests/motocross-rider-weight.test.ts",
+      "sha256": "e1ba1b0e3ff0eb21143c4e07ce2cef0d28caf4ba410fdd946498bf30b4908355",
+      "status": "passed",
+      "tests": 14,
+      "assertionsByStatus": {
+        "passed": 14
+      }
+    },
+    {
+      "path": "tests/motocross-riding.test.ts",
+      "sha256": "f1d51d886210baadd8a85dd5b3828178b4954efca4a85b9108a91080c980f468",
+      "status": "passed",
+      "tests": 27,
+      "assertionsByStatus": {
+        "passed": 27
+      }
+    },
+    {
+      "path": "tests/motocross-roost-budget.test.ts",
+      "sha256": "98e459f1b4ef06ad30fe9580b21bacd348261d6e0a9e1070a85f2bd0613b5923",
+      "status": "passed",
+      "tests": 1,
+      "assertionsByStatus": {
+        "passed": 1
+      }
+    },
+    {
+      "path": "tests/motocross-roost-contact.test.ts",
+      "sha256": "96839d77f35582bd4c06612797f83d278f2205f893e73af15a1afdc20c667a5f",
+      "status": "passed",
+      "tests": 15,
+      "assertionsByStatus": {
+        "passed": 15
+      }
+    },
+    {
+      "path": "tests/motocross-roost-deflector.test.ts",
+      "sha256": "8d3feceffee449ef067b063ed4fb806f238fe0286657c63a3172e00cd7df4686",
+      "status": "passed",
+      "tests": 3,
+      "assertionsByStatus": {
+        "passed": 3
+      }
+    },
+    {
+      "path": "tests/motocross-rotor-phase-energy.test.ts",
+      "sha256": "cffaa05bc573368beabab89b8d221aa6b4c27c08ad87b723795465e49f61f530",
+      "status": "passed",
+      "tests": 10,
+      "assertionsByStatus": {
+        "passed": 10
+      }
+    },
+    {
+      "path": "tests/motocross-rut-contact.test.ts",
+      "sha256": "a3a9774f4a93179bebd7252d2e406b457a4e1ce12f6d97b6611cf7d00c16a818",
+      "status": "passed",
+      "tests": 6,
+      "assertionsByStatus": {
+        "passed": 6
+      }
+    },
+    {
+      "path": "tests/motocross-screen-capture.test.ts",
+      "sha256": "f62486021f7c8746c7dd60e58efeee807ab3ccb98bd1a081790bbb1264dab926",
+      "status": "passed",
+      "tests": 1,
+      "assertionsByStatus": {
+        "passed": 1
+      }
+    },
+    {
+      "path": "tests/motocross-shift-continuity.test.ts",
+      "sha256": "e4c7278808c3d16f94ed8ba7b647097b2eada28401e88230645f0518bfb2daf4",
+      "status": "passed",
+      "tests": 5,
+      "assertionsByStatus": {
+        "passed": 5
+      }
+    },
+    {
+      "path": "tests/motocross-shift-extrema.test.ts",
+      "sha256": "ce3f5ed0edc32e806509f2e34878d0f4f69f6cb562b2e32b85932e3a3a7cdecf",
+      "status": "passed",
+      "tests": 9,
+      "assertionsByStatus": {
+        "passed": 9
+      }
+    },
+    {
+      "path": "tests/motocross-shoulder-load-continuity.test.ts",
+      "sha256": "b8b414421d97c59e005723fb81f8ae4f756ae859a277efb79f01acfdf3754c21",
+      "status": "passed",
+      "tests": 2,
+      "assertionsByStatus": {
+        "passed": 2
+      }
+    },
+    {
+      "path": "tests/motocross-shoulder-plants.test.ts",
+      "sha256": "1339dae818dcc908ec4813b69079d20104b6916d44b4a74d2ce0a5a3e698ac99",
+      "status": "passed",
+      "tests": 9,
+      "assertionsByStatus": {
+        "passed": 9
+      }
+    },
+    {
+      "path": "tests/motocross-shoulder-recovery.test.ts",
+      "sha256": "a3304d443221e9a30d9899dde4aaafb0da8900931ef22239ae41fe7c7185f759",
+      "status": "passed",
+      "tests": 2,
+      "assertionsByStatus": {
+        "passed": 2
+      }
+    },
+    {
+      "path": "tests/motocross-slope-momentum.test.ts",
+      "sha256": "2ae54620e9541ffb2a2acbc0a046eefbefdf7b3bd4a3ceedc5ffd22759736c5f",
+      "status": "passed",
+      "tests": 48,
+      "assertionsByStatus": {
+        "passed": 48
+      }
+    },
+    {
+      "path": "tests/motocross-snapshot-cadence.test.ts",
+      "sha256": "0578a9e08dcba0dd241f65f8b3046a6d009fd31e129c7b854249d5c811866949",
+      "status": "passed",
+      "tests": 2,
+      "assertionsByStatus": {
+        "passed": 2
+      }
+    },
+    {
+      "path": "tests/motocross-soil-morphology.test.ts",
+      "sha256": "e6a417612ce2263d1d1d766e68877af3d7aca0e5853031f187c2318332538d66",
+      "status": "passed",
+      "tests": 4,
+      "assertionsByStatus": {
+        "passed": 4
+      }
+    },
+    {
+      "path": "tests/motocross-soil-parallax.test.ts",
+      "sha256": "5c3daed04a51601d77f9830ce007b10d9558684d3ba11f5b2379a8968af588f5",
+      "status": "passed",
+      "tests": 7,
+      "assertionsByStatus": {
+        "passed": 7
+      }
+    },
+    {
+      "path": "tests/motocross-soil-pickup.test.ts",
+      "sha256": "8510130c321ed69d098e0a19dd080f9a5ab8e6ccd7874efe98c3a07e4a97b343",
+      "status": "passed",
+      "tests": 3,
+      "assertionsByStatus": {
+        "passed": 3
+      }
+    },
+    {
+      "path": "tests/motocross-soil-transition.test.ts",
+      "sha256": "ae485b172de557e9dc4c739f6843fe2144a0725e54e9fdbccf325a7501d18818",
+      "status": "passed",
+      "tests": 8,
+      "assertionsByStatus": {
+        "passed": 8
+      }
+    },
+    {
+      "path": "tests/motocross-spectators.test.ts",
+      "sha256": "48d3eb360893ddbeaf224d129a64233c71cc7d28e5cc0869f417919a2b4a845e",
+      "status": "passed",
+      "tests": 7,
+      "assertionsByStatus": {
+        "passed": 7
+      }
+    },
+    {
+      "path": "tests/motocross-spine.test.ts",
+      "sha256": "3a3c127672e97e4f8bc0ed9b172a7585ac187c125e2a2f8223206b52bc192eeb",
+      "status": "passed",
+      "tests": 6,
+      "assertionsByStatus": {
+        "passed": 6
+      }
+    },
+    {
+      "path": "tests/motocross-sprung-pose.test.ts",
+      "sha256": "0744edd9bb28c88ee6fdb5551873049feaac84ff7330db2865cffc9dba843e10",
+      "status": "passed",
+      "tests": 25,
+      "assertionsByStatus": {
+        "passed": 25
+      }
+    },
+    {
+      "path": "tests/motocross-stadium-crowd.test.ts",
+      "sha256": "fa6f9f2727a2fd27f2fdef9c971f547f66fa293ff157dad86dd142ace3c9f476",
+      "status": "passed",
+      "tests": 9,
+      "assertionsByStatus": {
+        "passed": 9
+      }
+    },
+    {
+      "path": "tests/motocross-supported-convergence.test.ts",
+      "sha256": "471afbb321350c924cf45b665fa9e693b4b1ac756c24ef3b7daada66785d5eba",
+      "status": "passed",
+      "tests": 11,
+      "assertionsByStatus": {
+        "passed": 11
+      }
+    },
+    {
+      "path": "tests/motocross-terrain-continuity.test.ts",
+      "sha256": "93826b6586cb257980ad5d34c7a1a0e03066917225990f2926372fb3f7a2721e",
+      "status": "passed",
+      "tests": 7,
+      "assertionsByStatus": {
+        "passed": 7
+      }
+    },
+    {
+      "path": "tests/motocross-terrain-shadow.test.ts",
+      "sha256": "20ad294f6d34e10777ac82e4359182e53162af9f312347a4acb1633bc3e397d3",
+      "status": "passed",
+      "tests": 9,
+      "assertionsByStatus": {
+        "passed": 9
+      }
+    },
+    {
+      "path": "tests/motocross-textile-structure.test.ts",
+      "sha256": "4ab131d550c63e89e937a4185bbaae8f41205f45d70a1d170108ba76eb935c5b",
+      "status": "passed",
+      "tests": 3,
+      "assertionsByStatus": {
+        "passed": 3
+      }
+    },
+    {
+      "path": "tests/motocross-thermal.test.ts",
+      "sha256": "6d0dae1db2e1ae44c230a64d33f35149dc4d13e7959c963c14deb429ca8a333e",
+      "status": "passed",
+      "tests": 3,
+      "assertionsByStatus": {
+        "passed": 3
+      }
+    },
+    {
+      "path": "tests/motocross-timing-board.test.ts",
+      "sha256": "568cc54c024d61f0761afd5cf80234542bbb403d6b9a1f125b30f33956e9359a",
+      "status": "passed",
+      "tests": 1,
+      "assertionsByStatus": {
+        "passed": 1
+      }
+    },
+    {
+      "path": "tests/motocross-tyre-contact.test.ts",
+      "sha256": "23632300dc192f56ec252a7d43713f82fbb94555d5276c87945458a621ab8422",
+      "status": "passed",
+      "tests": 7,
+      "assertionsByStatus": {
+        "passed": 7
+      }
+    },
+    {
+      "path": "tests/motocross-tyre-finish.test.ts",
+      "sha256": "137288231ce08a30e4b5be9544c324e84599afc7a6a25122e3293fbece3a317c",
+      "status": "passed",
+      "tests": 8,
+      "assertionsByStatus": {
+        "passed": 8
+      }
+    },
+    {
+      "path": "tests/motocross-tyre-traces.test.ts",
+      "sha256": "09f9bb8d1d872b4ab3d2e5fd8fbcdc43cc3723b301eaaea1ed4fdaa9f63b5809",
+      "status": "passed",
+      "tests": 9,
+      "assertionsByStatus": {
+        "passed": 9
+      }
+    },
+    {
+      "path": "tests/motocross-uv-footprint.test.ts",
+      "sha256": "18c61ba6fb4b01ffe3150568075f2050890ed838777980079bdee4f0a64288d6",
+      "status": "passed",
+      "tests": 7,
+      "assertionsByStatus": {
+        "passed": 7
+      }
+    },
+    {
+      "path": "tests/motocross-venue-integration.test.ts",
+      "sha256": "3ee89102190c7f4221eae188204772593c1e3b25fda37c2d8abfc6c38369ee82",
+      "status": "passed",
+      "tests": 4,
+      "assertionsByStatus": {
+        "passed": 4
+      }
+    },
+    {
+      "path": "tests/motocross-wheel-motion-consistency.test.ts",
+      "sha256": "16506ea9755442474c2f7576d65f8695a2374b501db5b53e71b9a3ef489991a3",
+      "status": "passed",
+      "tests": 40,
+      "assertionsByStatus": {
+        "passed": 40
+      }
+    },
+    {
+      "path": "tests/motocross-wheel-pickup.test.ts",
+      "sha256": "fd35948fae7d3d176961f1b89546a2e51b4007fc565e68a3d9c960e44b00cd0d",
+      "status": "passed",
+      "tests": 14,
+      "assertionsByStatus": {
+        "passed": 14
+      }
+    },
+    {
+      "path": "tests/motocross-worked-soil.test.ts",
+      "sha256": "690b047822cccf92e1bb40a7b26808e290e7eec1379f0df4e36b5e75de814315",
+      "status": "passed",
+      "tests": 5,
+      "assertionsByStatus": {
+        "passed": 5
+      }
+    },
+    {
+      "path": "tests/offroad-meeting.test.ts",
+      "sha256": "9009d653bdc747885c98b48d8cf9c943c5c1f8aaac8a2f9b04ef275359f8d287",
+      "status": "passed",
+      "tests": 7,
+      "assertionsByStatus": {
+        "passed": 7
+      }
+    },
+    {
+      "path": "tests/offroad.test.ts",
+      "sha256": "24f14acc9da96ac201a6d7354594d51307bd6d07553c560a89f0b4cc57a4b05f",
+      "status": "passed",
+      "tests": 24,
+      "assertionsByStatus": {
+        "passed": 24
+      }
+    }
+  ],
+  "historicalFailureFilesFinalResults": [
+    {
+      "path": "tests/motocross-air-drag.test.ts",
+      "sha256": "7539d5f6feb1f9268896fcc3b0264b2385ac2a3321191b84b0a3a02a50e01c4a",
+      "status": "passed",
+      "tests": 22,
+      "assertionsByStatus": {
+        "passed": 22
+      }
+    },
+    {
+      "path": "tests/motocross-collision.test.ts",
+      "sha256": "b0c1013115f3046482e87dc554a27d9d06a7a4b73f60b2e673aa1db684b701ff",
+      "status": "passed",
+      "tests": 17,
+      "assertionsByStatus": {
+        "passed": 17
+      }
+    },
+    {
+      "path": "tests/motocross-dynamic-suspension.test.ts",
+      "sha256": "e09d17ecc241508d90b3fd65bca723c8d5f02e021350e28c451d910b4ee5ae50",
+      "status": "passed",
+      "tests": 14,
+      "assertionsByStatus": {
+        "passed": 14
+      }
+    },
+    {
+      "path": "tests/motocross-hard-stop-integration.test.ts",
+      "sha256": "01c8959340bfde433ad11cfab9fda4dd4e8e1b6a961ad1e44085ae220329ab66",
+      "status": "passed",
+      "tests": 12,
+      "assertionsByStatus": {
+        "passed": 12
+      }
+    },
+    {
+      "path": "tests/motocross-joint-reversal.test.ts",
+      "sha256": "af98eae832652a9e925375ce3d72b3b52b307388ff16b3832a6fef9c545aa4b3",
+      "status": "passed",
+      "tests": 30,
+      "assertionsByStatus": {
+        "passed": 30
+      }
+    },
+    {
+      "path": "tests/motocross-live-pose-coherence.test.ts",
+      "sha256": "d055e3ceb79441291f953a3b6abf0cd662e45e07c8699863092836bcb440f08b",
+      "status": "passed",
+      "tests": 9,
+      "assertionsByStatus": {
+        "passed": 9
+      }
+    }
+  ],
+  "failureHistoryForThisRun": [],
+  "fileErrors": [],
+  "rawArtifacts": [
+    {
+      "path": "test-results/agent46/final-start.json",
+      "sha256": "cc65cc3ce36fc7688abaaaac054e5463356d976578e08dd5aeba8b883d6eb714",
+      "bytes": 275661
+    },
+    {
+      "path": "test-results/agent46/final-receipt.json",
+      "sha256": "3e18c4d4d67cafd466ba7923205a8b94ff47c3d4bb52befcd44a1ccc280f0f97",
+      "bytes": 972177
+    },
+    {
+      "path": "test-results/agent46/final-vitest.json",
+      "sha256": "bf565c9cc8edc0bfea6f6c97b9e29878f5f8d98ee04ef10ef84771149ef38b30",
+      "bytes": 664592
+    },
+    {
+      "path": "test-results/agent46/final.log",
+      "sha256": "24b61fe8d453640aed2c80ef97099c9c34596078311a93e475e63383c42839e3",
+      "bytes": 47611
+    },
+    {
+      "path": "test-results/agent46/run-final.py",
+      "sha256": "0cf82502b8fe259ee390b92f181467372e47baa0c9631931d9754705656bfe91",
+      "bytes": 8274
+    }
+  ],
+  "historicalEvidencePreserved": {
+    "docs/engine/mx-dynamics-2026-11-25/evidence/46-full-engine-units.json": {
+      "sha256": "c1d5a9ea2bfeb35bd593295d16239efd72c9bc1db240adb470d31152065d7c36"
+    },
+    "docs/engine/mx-dynamics-2026-11-25/agents/46-full-engine-units.md": {
+      "sha256": "dbf7a9c96e623c42dc8b2f4dc4d3115867482e6937e4a2be98219c46c3e82431"
+    }
+  },
+  "limitations": [
+    "Unit acceptance does not substitute for native-browser or player testing.",
+    "This assignment made no production, test, model, character-asset, authored-environment, build-output or git-state edits."
+  ]
+}

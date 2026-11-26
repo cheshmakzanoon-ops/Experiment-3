@@ -1,0 +1,809 @@
+{
+  "assignment": 49,
+  "title": "Shoulder recovery must respect the traffic-owned corridor",
+  "baselineCommit": "2578271913c264f5ffd6131afea30723df14b65b",
+  "inputSourceFingerprint": "a153c34d852b156d5638b2175766e5f22135aa9045af2796cd2e7d9afdd5f9d0",
+  "retainedSourceFingerprint": "4c041cb338d0fa480e0514ee905137a24061494b98b9899949238f6b137be790",
+  "retainedAiSha256": "48b1a697e912e999dc04b423bdf3fab1fdf0204c7f656717d2063ea311e94462",
+  "testSha256": "640a7d4bf1cbe3cc78b3f3dca734953f72bbbc86288ef1d974ec831e375c49d5",
+  "baselineSameNodeReplay": {
+    "passed": true,
+    "failures": [],
+    "raceSeconds": 219.58,
+    "crashes": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0
+    ],
+    "longestStopSeconds": 10.75,
+    "finishers": 12,
+    "retired": [],
+    "terrainHash": "e5782e4f"
+  },
+  "firstDivergence": {
+    "tag": "upstream",
+    "tick": 2465,
+    "time": 20.541666666666668,
+    "raceTime": 14.346211187183954,
+    "id": 7,
+    "keys": [
+      "x",
+      "z",
+      "heading",
+      "speed",
+      "lean",
+      "leanRate",
+      "cgY",
+      "pitch",
+      "pitchRate",
+      "roadPitch",
+      "s",
+      "lateral",
+      "forceFront",
+      "forceRear",
+      "steer"
+    ],
+    "before": {
+      "current": {
+        "x": 89.49741601739414,
+        "z": -10.381201360254156,
+        "heading": 0.15965120402098762,
+        "speed": 4.953069459507545,
+        "lean": -0.5399700206556811,
+        "leanRate": -0.01608398276692335,
+        "state": "riding",
+        "gear": 1,
+        "cgY": 1.5098584210696788,
+        "pitch": 0.17324495222095723,
+        "pitchRate": 0.02797300336033979,
+        "roadPitch": 0.12257908042428538,
+        "s": 113.06427232261672,
+        "lateral": 5.0997142518414,
+        "forceFront": 534.3212965397836,
+        "forceRear": 1221.2880503517563,
+        "throttle": 0.47350108044077877,
+        "brake": 0.05205750526434548,
+        "clutch": 0,
+        "steer": -0.8429097815293436,
+        "airborne": false,
+        "landings": 0,
+        "crashes": 0,
+        "aiTarget": 5.803001797065058,
+        "decision": "ABORT / FOLLOW",
+        "plan": {
+          "jump": "TRIPLE",
+          "clear": true,
+          "locked": false
+        },
+        "lastLanding": null,
+        "clock": 20.53333333333249,
+        "crashCauses": []
+      },
+      "other": {
+        "x": 89.49741601739414,
+        "z": -10.381201360254156,
+        "heading": 0.15965120402098762,
+        "speed": 4.953069459507545,
+        "lean": -0.5399700206556811,
+        "leanRate": -0.01608398276692335,
+        "state": "riding",
+        "gear": 1,
+        "cgY": 1.5098584210696788,
+        "pitch": 0.17324495222095723,
+        "pitchRate": 0.02797300336033979,
+        "roadPitch": 0.12257908042428538,
+        "s": 113.06427232261672,
+        "lateral": 5.0997142518414,
+        "forceFront": 534.3212965397836,
+        "forceRear": 1221.2880503517563,
+        "throttle": 0.47350108044077877,
+        "brake": 0.05205750526434548,
+        "clutch": 0,
+        "steer": -0.8429097815293436,
+        "airborne": false,
+        "landings": 0,
+        "crashes": 0,
+        "aiTarget": 5.803001797065058,
+        "decision": "ABORT / FOLLOW",
+        "plan": {
+          "jump": "TRIPLE",
+          "clear": true,
+          "locked": false
+        },
+        "lastLanding": null,
+        "clock": 20.53333333333249,
+        "crashCauses": []
+      }
+    },
+    "after": {
+      "current": {
+        "x": 89.50377414335289,
+        "z": -10.340628734671451,
+        "heading": 0.15443823712781882,
+        "speed": 4.9685378021069155,
+        "lean": -0.5398363369354827,
+        "leanRate": 0.010321205267442849,
+        "state": "riding",
+        "gear": 1,
+        "cgY": 1.5148753943413689,
+        "pitch": 0.1734786344137399,
+        "pitchRate": 0.027948875114368752,
+        "roadPitch": 0.12230105626059325,
+        "s": 113.1011792663486,
+        "lateral": 5.117939767555258,
+        "forceFront": 524.4175981218741,
+        "forceRear": 1234.950214601462,
+        "throttle": 0.47398659672055,
+        "brake": 0.0523922835004332,
+        "clutch": 0,
+        "steer": -0.8416579268038746,
+        "airborne": false,
+        "landings": 0,
+        "crashes": 0,
+        "aiTarget": 5.808730874517539,
+        "decision": "ABORT / FOLLOW",
+        "plan": {
+          "jump": "TRIPLE",
+          "clear": true,
+          "locked": false
+        },
+        "lastLanding": null,
+        "clock": 20.541666666665822,
+        "crashCauses": []
+      },
+      "other": {
+        "x": 89.50377310556985,
+        "z": -10.34062856096892,
+        "heading": 0.1544041330188445,
+        "speed": 4.968537973258118,
+        "lean": -0.5398352755595256,
+        "leanRate": 0.010490796634965683,
+        "state": "riding",
+        "gear": 1,
+        "cgY": 1.5148753663668337,
+        "pitch": 0.1734786064011364,
+        "pitchRate": 0.027943854119317095,
+        "roadPitch": 0.12229259370192147,
+        "s": 113.10117973765523,
+        "lateral": 5.117938828779089,
+        "forceFront": 524.293856291449,
+        "forceRear": 1234.932672975375,
+        "throttle": 0.47398659672055,
+        "brake": 0.0523922835004332,
+        "clutch": 0,
+        "steer": -0.8403577571222245,
+        "airborne": false,
+        "landings": 0,
+        "crashes": 0,
+        "aiTarget": 5.808730874517539,
+        "decision": "ABORT / FOLLOW",
+        "plan": {
+          "jump": "TRIPLE",
+          "clear": true,
+          "locked": false
+        },
+        "lastLanding": null,
+        "clock": 20.541666666665822,
+        "crashCauses": []
+      }
+    }
+  },
+  "blockedSteeringExamples": [
+    {
+      "tick": 2464,
+      "time": 20.53333333333249,
+      "s": 113.06427232261672,
+      "lateral": 5.0997142518414,
+      "speed": 4.953069459507545,
+      "lip": -0.49589442762935243,
+      "afterSteer": -0.5,
+      "width": 4.77699505745561,
+      "footprint": 5.5590331307009935,
+      "headingError": -0.4471806927961346,
+      "lean": -0.5399700206556811,
+      "leanRate": -0.01608398276692335,
+      "decision": "ABORT / FOLLOW",
+      "plan": {
+        "jump": "TRIPLE",
+        "takeoff": 138.52694979275375,
+        "landing": 158.08265536510848,
+        "end": 161.91621372364057,
+        "clear": true,
+        "locked": false
+      }
+    },
+    {
+      "tick": 2544,
+      "time": 21.199999999999118,
+      "s": 114.76122926271546,
+      "lateral": 5.999364516222319,
+      "speed": 5.326648344602716,
+      "lip": 0.499622260746151,
+      "afterSteer": -0.5,
+      "width": 4.737566497663428,
+      "footprint": 6.18933550973256,
+      "headingError": 0.07537408042270144,
+      "lean": -0.5100608413266123,
+      "leanRate": 1.043795611481194,
+      "decision": "ABORT / FOLLOW",
+      "plan": {
+        "jump": "TRIPLE",
+        "takeoff": 138.52694979275375,
+        "landing": 158.08265536510848,
+        "end": 161.91621372364057,
+        "clear": true,
+        "locked": false
+      }
+    }
+  ],
+  "counterfactuals": [
+    {
+      "variant": "current",
+      "description": "Pre-fix integrated runtime",
+      "sourceFingerprint": "a153c34d852b156d5638b2175766e5f22135aa9045af2796cd2e7d9afdd5f9d0",
+      "result": {
+        "passed": false,
+        "raceSeconds": 223.13,
+        "crashes": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          2,
+          0,
+          0,
+          0,
+          0
+        ],
+        "longestStopSeconds": 13.29,
+        "finishers": 12,
+        "retired": [],
+        "terrainHash": "3127eebd"
+      }
+    },
+    {
+      "variant": "old-ai",
+      "description": "Only AI source replaced by untouched upstream",
+      "sourceFingerprint": "4883754c6dc73a447d3b79cdd889a23303e35ae97547a9041e84ccdb8b87fd98",
+      "result": {
+        "passed": true,
+        "failures": [],
+        "raceSeconds": 231.59,
+        "crashes": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "longestStopSeconds": 13.22,
+        "finishers": 12,
+        "retired": [],
+        "terrainHash": "b8d1489e"
+      }
+    },
+    {
+      "variant": "old-shoulder",
+      "description": "Only the new shoulder-steering block reverted",
+      "sourceFingerprint": "f1f33a843b14798f3b50a0124984453d851eef0f83b5f64b19e5dca7c5c10f47",
+      "result": {
+        "passed": true,
+        "failures": [],
+        "raceSeconds": 231.59,
+        "crashes": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "longestStopSeconds": 13.22,
+        "finishers": 12,
+        "retired": [],
+        "terrainHash": "b8d1489e"
+      }
+    },
+    {
+      "variant": "old-latch",
+      "description": "Only the first-landing latch reverted",
+      "sourceFingerprint": "e2ea2979ce5bf6d6afae79f02071ce15b9f16cad5329118c90ac33a9624dfbd0",
+      "result": {
+        "passed": false,
+        "failures": [
+          "arena-nord-sx rain seed 60729: one rider crashed 2 times in 2 laps (rider 7: crash-front at 466.3 m (83.9 s), crash-front at 456.0 m (176.7 s))"
+        ],
+        "raceSeconds": 223.13,
+        "crashes": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          2,
+          0,
+          0,
+          0,
+          0
+        ],
+        "longestStopSeconds": 13.29,
+        "finishers": 12,
+        "retired": [],
+        "terrainHash": "3127eebd"
+      }
+    },
+    {
+      "variant": "scoped-shift",
+      "description": "Redundant downshift eligibility guard; rejected no-op hypothesis",
+      "sourceFingerprint": "8a548739f6909f0b6af501a504fc50ca3f7ce1c2ab72bb85cf896cff93afeef1",
+      "result": {
+        "passed": false,
+        "failures": [
+          "arena-nord-sx rain seed 60729: one rider crashed 2 times in 2 laps (rider 7: crash-front at 466.3 m (83.9 s), crash-front at 456.0 m (176.7 s))"
+        ],
+        "raceSeconds": 223.13,
+        "crashes": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          2,
+          0,
+          0,
+          0,
+          0
+        ],
+        "longestStopSeconds": 13.29,
+        "finishers": 12,
+        "retired": [],
+        "terrainHash": "3127eebd"
+      }
+    },
+    {
+      "variant": "traffic-priority",
+      "description": "Retained ownership guard before explanatory comments",
+      "sourceFingerprint": "78cccf338f9685e756a9484fe3c82e2e61532dd45e402f007ea9ce8f42a6670c",
+      "result": {
+        "passed": true,
+        "failures": [],
+        "raceSeconds": 219.67,
+        "crashes": [
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0
+        ],
+        "longestStopSeconds": 15.55,
+        "finishers": 12,
+        "retired": [],
+        "terrainHash": "379c730e"
+      }
+    }
+  ],
+  "unitRuns": [
+    {
+      "receipt": "before-final-vitest",
+      "success": false,
+      "total": 5,
+      "passed": 0,
+      "failed": 5,
+      "files": [
+        {
+          "path": "motocross-jump-traffic-priority.test.ts",
+          "assertions": 5,
+          "status": "failed"
+        }
+      ]
+    },
+    {
+      "receipt": "final-vitest",
+      "success": true,
+      "total": 48,
+      "passed": 48,
+      "failed": 0,
+      "files": [
+        {
+          "path": "motocross-jump-corridor.test.ts",
+          "assertions": 14,
+          "status": "passed"
+        },
+        {
+          "path": "motocross-jump-traffic-priority.test.ts",
+          "assertions": 5,
+          "status": "passed"
+        },
+        {
+          "path": "motocross-landing-plan.test.ts",
+          "assertions": 9,
+          "status": "passed"
+        },
+        {
+          "path": "motocross-player-dynamics.test.ts",
+          "assertions": 20,
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "receipt": "priority-final-vitest",
+      "success": true,
+      "total": 5,
+      "passed": 5,
+      "failed": 0,
+      "files": [
+        {
+          "path": "motocross-jump-traffic-priority.test.ts",
+          "assertions": 5,
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "receipt": "flow-vitest",
+      "success": true,
+      "total": 18,
+      "passed": 18,
+      "failed": 0,
+      "files": [
+        {
+          "path": "motocross-forgiving-handling.test.ts",
+          "assertions": 18,
+          "status": "passed"
+        }
+      ]
+    }
+  ],
+  "distinctFocusedTests": 66,
+  "focusedFiles": 5,
+  "unitAccounting": "Final priority-only rerun replaces that same 5-test file in the earlier 48-test group. Add the disjoint 18-test handling file: 48+18=66; expected before-fix failures are not acceptance tests.",
+  "downshiftHypothesis": "Rejected: drive already returns super.drive before the player-only rule when !playerMotocross. The redundant guard caused no observed divergence in the paired100s physical/control trace and exact60729 result was identical.",
+  "validationPending": [],
+  "fullGrid": {
+    "passed": true,
+    "failures": [],
+    "races": [
+      {
+        "race": "valley-ridge-mx clear seed 60704",
+        "seed": 60704,
+        "weather": "clear",
+        "configuredLaps": 2,
+        "entrants": 12,
+        "finishers": 12,
+        "retired": [],
+        "raceSeconds": 233.98,
+        "crashes": [
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0
+        ],
+        "totalCrashes": 2,
+        "worstRiderCrashes": 1,
+        "longestStopSeconds": 14.75
+      },
+      {
+        "race": "valley-ridge-mx clear seed 60705",
+        "seed": 60705,
+        "weather": "clear",
+        "configuredLaps": 2,
+        "entrants": 12,
+        "finishers": 12,
+        "retired": [],
+        "raceSeconds": 208.35,
+        "crashes": [
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          1,
+          0
+        ],
+        "totalCrashes": 3,
+        "worstRiderCrashes": 1,
+        "longestStopSeconds": 19.15
+      },
+      {
+        "race": "valley-ridge-mx rain seed 60709",
+        "seed": 60709,
+        "weather": "rain",
+        "configuredLaps": 2,
+        "entrants": 12,
+        "finishers": 12,
+        "retired": [],
+        "raceSeconds": 516.14,
+        "crashes": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0
+        ],
+        "totalCrashes": 1,
+        "worstRiderCrashes": 1,
+        "longestStopSeconds": 16.17
+      },
+      {
+        "race": "valley-ridge-mx rain seed 60710",
+        "seed": 60710,
+        "weather": "rain",
+        "configuredLaps": 2,
+        "entrants": 12,
+        "finishers": 12,
+        "retired": [],
+        "raceSeconds": 507.78,
+        "crashes": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0
+        ],
+        "totalCrashes": 1,
+        "worstRiderCrashes": 1,
+        "longestStopSeconds": 16.37
+      },
+      {
+        "race": "arena-nord-sx clear seed 60724",
+        "seed": 60724,
+        "weather": "clear",
+        "configuredLaps": 2,
+        "entrants": 12,
+        "finishers": 12,
+        "retired": [],
+        "raceSeconds": 225.72,
+        "crashes": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "totalCrashes": 1,
+        "worstRiderCrashes": 1,
+        "longestStopSeconds": 13.87
+      },
+      {
+        "race": "arena-nord-sx clear seed 60725",
+        "seed": 60725,
+        "weather": "clear",
+        "configuredLaps": 2,
+        "entrants": 12,
+        "finishers": 12,
+        "retired": [],
+        "raceSeconds": 216.84,
+        "crashes": [
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "totalCrashes": 1,
+        "worstRiderCrashes": 1,
+        "longestStopSeconds": 12.41
+      },
+      {
+        "race": "arena-nord-sx rain seed 60729",
+        "seed": 60729,
+        "weather": "rain",
+        "configuredLaps": 2,
+        "entrants": 12,
+        "finishers": 12,
+        "retired": [],
+        "raceSeconds": 219.67,
+        "crashes": [
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0
+        ],
+        "totalCrashes": 2,
+        "worstRiderCrashes": 1,
+        "longestStopSeconds": 15.55
+      },
+      {
+        "race": "arena-nord-sx rain seed 60730",
+        "seed": 60730,
+        "weather": "rain",
+        "configuredLaps": 2,
+        "entrants": 12,
+        "finishers": 12,
+        "retired": [],
+        "raceSeconds": 214.07,
+        "crashes": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "totalCrashes": 0,
+        "worstRiderCrashes": 0,
+        "longestStopSeconds": 11.78
+      }
+    ]
+  },
+  "valleyEvent": {
+    "passed": true,
+    "failures": [],
+    "races": [
+      {
+        "race": "event valley-ridge-mx-moto-1",
+        "seed": 41001,
+        "weather": "clear",
+        "configuredLaps": 4,
+        "entrants": 10,
+        "finishers": 10,
+        "retired": [],
+        "raceSeconds": 386.67,
+        "crashes": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0
+        ],
+        "totalCrashes": 1,
+        "worstRiderCrashes": 1,
+        "longestStopSeconds": 13.26
+      }
+    ]
+  },
+  "finalInputProof": {
+    "runtimeFingerprint": "4c041cb338d0fa480e0514ee905137a24061494b98b9899949238f6b137be790",
+    "originalRaceScriptUnchangedFromTaskStart": true,
+    "originalRaceScriptSha256": "0535744434ca50ab792d206259f454336172de7f39ab969a3411404d08f532b0",
+    "focusedFileSha256": {
+      "tests/motocross-jump-traffic-priority.test.ts": "640a7d4bf1cbe3cc78b3f3dca734953f72bbbc86288ef1d974ec831e375c49d5",
+      "tests/motocross-jump-corridor.test.ts": "6cd4682fb4cff98d583a7ff645ca6a817d4d076906d03005441621e46cfed86b",
+      "tests/motocross-landing-plan.test.ts": "923897cfbbe7c834a32935e052a16e9a427b8344fde9e55df8ce40b1572a8b59",
+      "tests/motocross-player-dynamics.test.ts": "59b7575afc3ee2b11594546da0dfb15abc5c9aa733c3344776181e9472f6f31e",
+      "tests/motocross-forgiving-handling.test.ts": "495119af76deed9cbf3cb4f8f8c889bab2aeb1d5e15c510f64e424adafab29d1"
+    },
+    "unchangedFocusedFilesSinceCheckpoint": {
+      "tests/motocross-jump-corridor.test.ts": true,
+      "tests/motocross-landing-plan.test.ts": true,
+      "tests/motocross-player-dynamics.test.ts": true,
+      "tests/motocross-forgiving-handling.test.ts": true
+    }
+  },
+  "artifacts": [
+    {
+      "path": "49-motocross-full-grid.json",
+      "sha256": "faa823d8fa0a2605bd399e89ed5d3a195e15b2cce71b768343226e25ea21180a",
+      "bytes": 35190
+    },
+    {
+      "path": "49-motocross-full-grid.log",
+      "sha256": "6eae8959691b62c5cd35a0e3bb66ab7b62ad340b7c3641710ff2562474a666dc",
+      "bytes": 1602
+    },
+    {
+      "path": "49-valley-event.json",
+      "sha256": "f3e81b85a892a945d91d12203e43f6434e9260a70a54f740d20633676252041f",
+      "bytes": 4158
+    },
+    {
+      "path": "49-valley-event.log",
+      "sha256": "90eeaa5fd95095669cd9718f8e16d456411156ec1a2b180bfa2dca02852bdd98",
+      "bytes": 344
+    }
+  ],
+  "completedUtc": "2026-11-25T23:55:06.422418+00:00",
+  "types": {
+    "passed": true,
+    "exitCode": 0,
+    "command": "node --max-old-space-size=768 node_modules/typescript/bin/tsc --project <temporary config extending tsconfig.json and including the new test>"
+  },
+  "lint": {
+    "passed": true,
+    "exitCode": 0,
+    "command": "node node_modules/eslint/bin/eslint.js src/simulation/offroad/ai.ts tests/motocross-jump-traffic-priority.test.ts"
+  },
+  "whitespace": {
+    "passed": true,
+    "command": "git diff --check"
+  },
+  "inputScopeNote": "The four pre-existing focused test files remain byte-identical to local checkpoint b287924. The new5-test file was strengthened after its first run, then rerun against both exact pre-fix and retained sources; only its final rerun enters acceptance. Full-grid and event outputs retain configured laps; finishers are confirmed but completed rider-lap counts are not asserted.",
+  "finalSourceFingerprintAfterAllRaces": "4c041cb338d0fa480e0514ee905137a24061494b98b9899949238f6b137be790"
+}

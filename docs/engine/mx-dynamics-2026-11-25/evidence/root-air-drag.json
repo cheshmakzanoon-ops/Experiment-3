@@ -1,0 +1,42 @@
+{
+  "owner": "root",
+  "scope": "test-only correction of per-physical-interval fuel mass observation",
+  "sourceFingerprint": "4c041cb338d0fa480e0514ee905137a24061494b98b9899949238f6b137be790",
+  "testSha256": "7539d5f6feb1f9268896fcc3b0264b2385ac2a3321191b84b0a3a02a50e01c4a",
+  "command": [
+    "node",
+    "node_modules/vitest/vitest.mjs",
+    "run",
+    "tests/motocross-air-drag.test.ts",
+    "--maxWorkers=1",
+    "--reporter=default",
+    "--reporter=json",
+    "--outputFile=test-results/root-air-drag-vitest.json"
+  ],
+  "result": {
+    "success": true,
+    "numTotalTests": 22,
+    "numPassedTests": 22,
+    "numFailedTests": 0,
+    "numPendingTests": 0,
+    "numTodoTests": 0
+  },
+  "lint": {
+    "command": [
+      "node",
+      "node_modules/eslint/bin/eslint.js",
+      "tests/motocross-air-drag.test.ts"
+    ],
+    "exitCode": 0
+  },
+  "originalTests": 20,
+  "addedObserverCases": 2,
+  "pairedPublicStates": 200,
+  "comparedUnroundedQuantitiesPerState": 19,
+  "productionChanges": [],
+  "tolerances": "Original speed11, position10, heading12 and lateral12 decimal-place expectations retained; also applied at actual physical endpoints.",
+  "originalObservedSpeedErrors": [
+    3.739e-11,
+    3.9e-11
+  ]
+}

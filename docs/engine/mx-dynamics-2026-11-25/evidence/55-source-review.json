@@ -1,0 +1,42 @@
+{
+  "assignment": 55,
+  "wave": 10,
+  "kind": "independent_read_only_source_review",
+  "base": "c9c94c7029dbc3e29b18101ef7ccea0a897184d1",
+  "sourceFingerprint": "4c041cb338d0fa480e0514ee905137a24061494b98b9899949238f6b137be790",
+  "sourceFileCount": 1129,
+  "expectedFingerprint": "4c041cb338d0fa480e0514ee905137a24061494b98b9899949238f6b137be790",
+  "changedRuntimeFiles": {
+    "src/core/session-identity.ts": "4184b2aa573b674137f15818866407c7193d2bd70307249bb92f36ea87fbaeba",
+    "src/rendering/wheel-pose.ts": "c3c224018a7b3586e73113e873514f1cffd715306516070804b22b47ee2c9207",
+    "src/simulation/bike-vehicle.ts": "ba916a4ab1a6830235fbfcf7f85885cba6dd9b71816eefff49fdf9f74d58a0ff",
+    "src/simulation/bike.ts": "abcd7fe3b0e1432073c42890549974a03821d0829c2f3bfe6c3cf5f54da0d7b8",
+    "src/simulation/offroad/ai.ts": "48b1a697e912e999dc04b423bdf3fab1fdf0204c7f656717d2063ea311e94462",
+    "src/simulation/offroad/contact-impulse.ts": "825d280cfd4c1769db8fee0abcdfa91989f4c6b73ac502e120f59f1061afa28e",
+    "src/simulation/offroad/dirt-bike-vehicle.ts": "7a72b2747d4469bc652ce965afab4a8f94a7b1606073291c6d36045182b9361e",
+    "src/simulation/offroad/mx-ground-physics.ts": "68b04234548a2b037f4769d38343c26ec712a61fd9261fd6dac44641c81ca4e3",
+    "src/simulation/offroad/session.ts": "2267a4bf561b073b44aca94d147349c534a46cc84d822fe904a8b505665237e5"
+  },
+  "concreteReleaseBlockers": [],
+  "broadTestsRun": false,
+  "productionOrTestEdits": false,
+  "checksReviewed": [
+    "player/AI/non-MX caller dispatch",
+    "speed storage and world/tyre frame transitions",
+    "normal and forward active-set impact constraints",
+    "finite contact work and actuator heat ownership",
+    "bounded public and inner interval lifecycle",
+    "actual remount position and heading completion",
+    "wheel phase derivative consistency",
+    "current AI traffic-decision ownership"
+  ],
+  "knownLimitations": [
+    "reduced compliant spring work-conjugacy mismatch",
+    "separate explicit yaw-damper signed work port",
+    "retained C1 posture acceleration corner",
+    "sparse impact interpolation errors",
+    "cadence-sensitive complete median approach",
+    "narrow positive scenario margins",
+    "browser/GPU validation unavailable"
+  ]
+}

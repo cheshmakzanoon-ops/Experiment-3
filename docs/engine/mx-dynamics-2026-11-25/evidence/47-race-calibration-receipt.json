@@ -1,0 +1,834 @@
+{
+  "assignment": 47,
+  "wave": 8,
+  "sourceFingerprint": "a153c34d852b156d5638b2175766e5f22135aa9045af2796cd2e7d9afdd5f9d0",
+  "node": "v24.22.3",
+  "runtimeInputFingerprintFiles": 1129,
+  "checkedFiles": 1390,
+  "checkedGroups": {
+    "assets": 2,
+    "authoring": 22,
+    "docs": 2,
+    "index.html": 1,
+    "package-lock.json": 1,
+    "package.json": 1,
+    "public": 231,
+    "scripts": 2,
+    "src": 1126,
+    "tsconfig.json": 1,
+    "vite.config.ts": 1
+  },
+  "beforeAfterManifestEqual": true,
+  "selectedInputs": {
+    "scripts/offroad-calibration.ts": {
+      "mode": 420,
+      "sha256": "a994af9827d5587dd015533290a5725d458b80e2c176ef74915a73de08672718",
+      "bytes": 5927
+    },
+    "scripts/offroad-races.ts": {
+      "mode": 420,
+      "sha256": "0535744434ca50ab792d206259f454336172de7f39ab969a3411404d08f532b0",
+      "bytes": 13913
+    },
+    "src/simulation/events.ts": {
+      "mode": 420,
+      "sha256": "adf92e82801c967a01952543f3ebcd6061249d8345c6938f5668aaabf50f03d4",
+      "bytes": 15678
+    },
+    "src/simulation/config.ts": {
+      "mode": 420,
+      "sha256": "306cc0b5f5aaa0e3b2e11fb61ce59337a772eb2ca90844ddfcd34430398c1f0e",
+      "bytes": 11770
+    },
+    "src/simulation/offroad/venues.ts": {
+      "mode": 420,
+      "sha256": "6312ea30e1d79acf3d45f990be526b3e2db032a9d6cb8a442c6d2532cbfcd3c3",
+      "bytes": 17834
+    },
+    "src/simulation/world.ts": {
+      "mode": 420,
+      "sha256": "bfc08c1d8e3237ccf7a4e69eb1234022316eea3540b9e58252eb0d863ca8f6f1",
+      "bytes": 20186
+    },
+    "src/simulation/offroad/dirt-bike-vehicle.ts": {
+      "mode": 420,
+      "sha256": "7a72b2747d4469bc652ce965afab4a8f94a7b1606073291c6d36045182b9361e",
+      "bytes": 130567
+    },
+    "src/simulation/offroad/mx-ground-physics.ts": {
+      "mode": 420,
+      "sha256": "68b04234548a2b037f4769d38343c26ec712a61fd9261fd6dac44641c81ca4e3",
+      "bytes": 28921
+    },
+    "docs/offroad-calibration.json": {
+      "mode": 420,
+      "sha256": "bddf79cc6e6d5a0eae68f9c962215a2bc88e3cdde1edffc5d92fd795e343aee2",
+      "bytes": 11773
+    },
+    "docs/offroad-races.json": {
+      "mode": 420,
+      "sha256": "9eb43f6376fd309cf8ec94e507383acbb3ff206f65aa9563f86df82a28ab1d44",
+      "bytes": 41141
+    }
+  },
+  "runs": [
+    {
+      "label": "calibration",
+      "command": [
+        "node",
+        "--max-old-space-size=512",
+        "--experimental-transform-types",
+        "/home/agent/motobound-579b454ae846/scripts/offroad-calibration.ts"
+      ],
+      "cwd": "/home/agent/motobound-agent47-579b454ae846/calibration",
+      "offroadRace": null,
+      "started": "2026-11-25T23:18:01.528807+00:00",
+      "elapsedSeconds": 2.9687693289997696,
+      "exitCode": 0,
+      "sourceBefore": "a153c34d852b156d5638b2175766e5f22135aa9045af2796cd2e7d9afdd5f9d0",
+      "sourceAfter": "a153c34d852b156d5638b2175766e5f22135aa9045af2796cd2e7d9afdd5f9d0",
+      "inputChanges": [],
+      "inputCount": 1390,
+      "log": "/home/agent/motobound-agent47-579b454ae846/calibration.log",
+      "result": "/home/agent/motobound-agent47-579b454ae846/calibration/docs/offroad-calibration.json",
+      "resultExists": true
+    },
+    {
+      "label": "full-grid",
+      "command": [
+        "node",
+        "--max-old-space-size=512",
+        "--experimental-transform-types",
+        "/home/agent/motobound-579b454ae846/scripts/offroad-races.ts",
+        "--mx-full-grid"
+      ],
+      "cwd": "/home/agent/motobound-agent47-579b454ae846/full-grid",
+      "offroadRace": null,
+      "started": "2026-11-25T23:31:53.458779+00:00",
+      "elapsedSeconds": 275.90047522199893,
+      "exitCode": 1,
+      "sourceBefore": "a153c34d852b156d5638b2175766e5f22135aa9045af2796cd2e7d9afdd5f9d0",
+      "sourceAfter": "a153c34d852b156d5638b2175766e5f22135aa9045af2796cd2e7d9afdd5f9d0",
+      "inputChanges": [],
+      "inputCount": 1390,
+      "log": "/home/agent/motobound-agent47-579b454ae846/full-grid.log",
+      "result": "/home/agent/motobound-agent47-579b454ae846/full-grid/test-results/motocross-full-grid.json",
+      "resultExists": true
+    },
+    {
+      "label": "valley-event",
+      "command": [
+        "node",
+        "--max-old-space-size=512",
+        "--experimental-transform-types",
+        "/home/agent/motobound-579b454ae846/scripts/offroad-races.ts"
+      ],
+      "cwd": "/home/agent/motobound-agent47-579b454ae846/valley-event",
+      "offroadRace": "event valley-ridge-mx-moto-1",
+      "started": "2026-11-25T23:36:29.997157+00:00",
+      "elapsedSeconds": 44.54699879799955,
+      "exitCode": 0,
+      "sourceBefore": "a153c34d852b156d5638b2175766e5f22135aa9045af2796cd2e7d9afdd5f9d0",
+      "sourceAfter": "a153c34d852b156d5638b2175766e5f22135aa9045af2796cd2e7d9afdd5f9d0",
+      "inputChanges": [],
+      "inputCount": 1390,
+      "log": "/home/agent/motobound-agent47-579b454ae846/valley-event.log",
+      "result": "/home/agent/motobound-agent47-579b454ae846/valley-event/docs/offroad-races.json",
+      "resultExists": true
+    }
+  ],
+  "interruptedAttempts": [
+    {
+      "label": "full-grid",
+      "completedCases": 3,
+      "resultJsonWritten": false,
+      "reason": "exec session lost across context transition; log stopped, no live runner found; root confirmed another worker session was Unknown process id at same transition",
+      "preservedLog": "full-grid-interrupted.log",
+      "countedInFinalTotals": false,
+      "resumedAt": "2026-11-25T23:31:52.502476+00:00"
+    }
+  ],
+  "calibration": {
+    "passed": true,
+    "jumpSurveyRows": 20,
+    "standingStarts": [
+      {
+        "machine": "mx450",
+        "seconds": 4.52916666666673,
+        "band": [
+          3.6,
+          5
+        ],
+        "crashes": 0
+      },
+      {
+        "machine": "mx250",
+        "seconds": 4.495833333333398,
+        "band": [
+          3.7,
+          5.2
+        ],
+        "crashes": 0
+      },
+      {
+        "machine": "sm450",
+        "seconds": 4.425000000000069,
+        "band": [
+          3.8,
+          5.6
+        ],
+        "crashes": 0
+      }
+    ],
+    "holdOutcomes": {
+      "clean": 17,
+      "bottomed": 3
+    },
+    "walkingPasses": 20,
+    "adverseShortLongGapProbes": 24,
+    "nonKickerDistanceRatios": {
+      "minimum": 0.855,
+      "maximum": 0.983,
+      "originalAllowedBand": [
+        0.85,
+        1.15
+      ]
+    },
+    "failures": []
+  },
+  "fullGridPassed": false,
+  "eventPassed": true,
+  "raceRows": [
+    {
+      "suite": "full-grid",
+      "race": "valley-ridge-mx clear seed 60704",
+      "circuit": "valley-ridge-mx",
+      "weather": "clear",
+      "seed": 60704,
+      "riders": 12,
+      "classifiedFinishers": 12,
+      "retired": [],
+      "configuredLaps": 2,
+      "nominalRiderLapExposure": 24,
+      "actualCompletedRiderLaps": "Not exported by original script; lapped finishers are allowed by Race.step",
+      "raceSeconds": 217.73,
+      "raceLimitSeconds": 600,
+      "crashes": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0
+      ],
+      "totalCrashes": 1,
+      "crashesPerNominalRiderLap": 0.041666666666666664,
+      "aggregateCrashLimit": 0.5,
+      "worstRiderCrashes": 1,
+      "individualCrashLimit": 1,
+      "longestStopSeconds": 14.75,
+      "stopLimitStrictlyBelowSeconds": 20,
+      "holeshot": 9,
+      "terrainCells": 52471,
+      "terrainDepthMetres": 0.03613881394267082,
+      "terrainHash": "3e3e361e",
+      "crashCauses": [
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [
+          "crash-front@310"
+        ],
+        [],
+        [],
+        [],
+        []
+      ]
+    },
+    {
+      "suite": "full-grid",
+      "race": "valley-ridge-mx clear seed 60705",
+      "circuit": "valley-ridge-mx",
+      "weather": "clear",
+      "seed": 60705,
+      "riders": 12,
+      "classifiedFinishers": 12,
+      "retired": [],
+      "configuredLaps": 2,
+      "nominalRiderLapExposure": 24,
+      "actualCompletedRiderLaps": "Not exported by original script; lapped finishers are allowed by Race.step",
+      "raceSeconds": 223.36,
+      "raceLimitSeconds": 600,
+      "crashes": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0
+      ],
+      "totalCrashes": 2,
+      "crashesPerNominalRiderLap": 0.08333333333333333,
+      "aggregateCrashLimit": 0.5,
+      "worstRiderCrashes": 1,
+      "individualCrashLimit": 1,
+      "longestStopSeconds": 13.29,
+      "stopLimitStrictlyBelowSeconds": 20,
+      "holeshot": 9,
+      "terrainCells": 53173,
+      "terrainDepthMetres": 0.03246292099356651,
+      "terrainHash": "2701c481",
+      "crashCauses": [
+        [],
+        [],
+        [],
+        [
+          "crash-front@594"
+        ],
+        [],
+        [],
+        [],
+        [
+          "crash-front@601"
+        ],
+        [],
+        [],
+        [],
+        []
+      ]
+    },
+    {
+      "suite": "full-grid",
+      "race": "valley-ridge-mx rain seed 60709",
+      "circuit": "valley-ridge-mx",
+      "weather": "rain",
+      "seed": 60709,
+      "riders": 12,
+      "classifiedFinishers": 12,
+      "retired": [],
+      "configuredLaps": 2,
+      "nominalRiderLapExposure": 24,
+      "actualCompletedRiderLaps": "Not exported by original script; lapped finishers are allowed by Race.step",
+      "raceSeconds": 517.1,
+      "raceLimitSeconds": 600,
+      "crashes": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0
+      ],
+      "totalCrashes": 1,
+      "crashesPerNominalRiderLap": 0.041666666666666664,
+      "aggregateCrashLimit": 0.5,
+      "worstRiderCrashes": 1,
+      "individualCrashLimit": 1,
+      "longestStopSeconds": 17.79,
+      "stopLimitStrictlyBelowSeconds": 20,
+      "holeshot": 8,
+      "terrainCells": 57775,
+      "terrainDepthMetres": 0.046403177082538605,
+      "terrainHash": "1ac6cad0",
+      "crashCauses": [
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [
+          "crash-front@770"
+        ],
+        [],
+        [],
+        []
+      ]
+    },
+    {
+      "suite": "full-grid",
+      "race": "valley-ridge-mx rain seed 60710",
+      "circuit": "valley-ridge-mx",
+      "weather": "rain",
+      "seed": 60710,
+      "riders": 12,
+      "classifiedFinishers": 12,
+      "retired": [],
+      "configuredLaps": 2,
+      "nominalRiderLapExposure": 24,
+      "actualCompletedRiderLaps": "Not exported by original script; lapped finishers are allowed by Race.step",
+      "raceSeconds": 493.78,
+      "raceLimitSeconds": 600,
+      "crashes": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        1,
+        0
+      ],
+      "totalCrashes": 2,
+      "crashesPerNominalRiderLap": 0.08333333333333333,
+      "aggregateCrashLimit": 0.5,
+      "worstRiderCrashes": 1,
+      "individualCrashLimit": 1,
+      "longestStopSeconds": 16.33,
+      "stopLimitStrictlyBelowSeconds": 20,
+      "holeshot": 8,
+      "terrainCells": 60575,
+      "terrainDepthMetres": 0.04639887064695358,
+      "terrainHash": "6466066e",
+      "crashCauses": [
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [
+          "crash-rear@766"
+        ],
+        [],
+        [],
+        [
+          "crash-front@769"
+        ],
+        []
+      ]
+    },
+    {
+      "suite": "full-grid",
+      "race": "arena-nord-sx clear seed 60724",
+      "circuit": "arena-nord-sx",
+      "weather": "clear",
+      "seed": 60724,
+      "riders": 12,
+      "classifiedFinishers": 12,
+      "retired": [],
+      "configuredLaps": 2,
+      "nominalRiderLapExposure": 24,
+      "actualCompletedRiderLaps": "Not exported by original script; lapped finishers are allowed by Race.step",
+      "raceSeconds": 217.63,
+      "raceLimitSeconds": 600,
+      "crashes": [
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0
+      ],
+      "totalCrashes": 2,
+      "crashesPerNominalRiderLap": 0.08333333333333333,
+      "aggregateCrashLimit": 0.75,
+      "worstRiderCrashes": 1,
+      "individualCrashLimit": 1,
+      "longestStopSeconds": 12.7,
+      "stopLimitStrictlyBelowSeconds": 20,
+      "holeshot": 9,
+      "terrainCells": 33622,
+      "terrainDepthMetres": 0.011396244168281555,
+      "terrainHash": "c78ee41b",
+      "crashCauses": [
+        [],
+        [],
+        [],
+        [],
+        [
+          "crash-front@457"
+        ],
+        [],
+        [],
+        [],
+        [
+          "crash-flat@467"
+        ],
+        [],
+        [],
+        []
+      ]
+    },
+    {
+      "suite": "full-grid",
+      "race": "arena-nord-sx clear seed 60725",
+      "circuit": "arena-nord-sx",
+      "weather": "clear",
+      "seed": 60725,
+      "riders": 12,
+      "classifiedFinishers": 12,
+      "retired": [],
+      "configuredLaps": 2,
+      "nominalRiderLapExposure": 24,
+      "actualCompletedRiderLaps": "Not exported by original script; lapped finishers are allowed by Race.step",
+      "raceSeconds": 223.2,
+      "raceLimitSeconds": 600,
+      "crashes": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0
+      ],
+      "totalCrashes": 1,
+      "crashesPerNominalRiderLap": 0.041666666666666664,
+      "aggregateCrashLimit": 0.75,
+      "worstRiderCrashes": 1,
+      "individualCrashLimit": 1,
+      "longestStopSeconds": 12.79,
+      "stopLimitStrictlyBelowSeconds": 20,
+      "holeshot": 9,
+      "terrainCells": 34218,
+      "terrainDepthMetres": 0.011360525153577328,
+      "terrainHash": "4bd1582e",
+      "crashCauses": [
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [
+          "crash-front@458"
+        ],
+        [],
+        [],
+        [],
+        []
+      ]
+    },
+    {
+      "suite": "full-grid",
+      "race": "arena-nord-sx rain seed 60729",
+      "circuit": "arena-nord-sx",
+      "weather": "rain",
+      "seed": 60729,
+      "riders": 12,
+      "classifiedFinishers": 12,
+      "retired": [],
+      "configuredLaps": 2,
+      "nominalRiderLapExposure": 24,
+      "actualCompletedRiderLaps": "Not exported by original script; lapped finishers are allowed by Race.step",
+      "raceSeconds": 223.13,
+      "raceLimitSeconds": 600,
+      "crashes": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2,
+        0,
+        0,
+        0,
+        0
+      ],
+      "totalCrashes": 2,
+      "crashesPerNominalRiderLap": 0.08333333333333333,
+      "aggregateCrashLimit": 0.75,
+      "worstRiderCrashes": 2,
+      "individualCrashLimit": 1,
+      "longestStopSeconds": 13.29,
+      "stopLimitStrictlyBelowSeconds": 20,
+      "holeshot": 9,
+      "terrainCells": 34204,
+      "terrainDepthMetres": 0.011341973207890987,
+      "terrainHash": "3127eebd",
+      "crashCauses": [
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [
+          "crash-front@466",
+          "crash-front@456"
+        ],
+        [],
+        [],
+        [],
+        []
+      ]
+    },
+    {
+      "suite": "full-grid",
+      "race": "arena-nord-sx rain seed 60730",
+      "circuit": "arena-nord-sx",
+      "weather": "rain",
+      "seed": 60730,
+      "riders": 12,
+      "classifiedFinishers": 12,
+      "retired": [],
+      "configuredLaps": 2,
+      "nominalRiderLapExposure": 24,
+      "actualCompletedRiderLaps": "Not exported by original script; lapped finishers are allowed by Race.step",
+      "raceSeconds": 232.52,
+      "raceLimitSeconds": 600,
+      "crashes": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        1,
+        1
+      ],
+      "totalCrashes": 3,
+      "crashesPerNominalRiderLap": 0.125,
+      "aggregateCrashLimit": 0.75,
+      "worstRiderCrashes": 1,
+      "individualCrashLimit": 1,
+      "longestStopSeconds": 11.87,
+      "stopLimitStrictlyBelowSeconds": 20,
+      "holeshot": 9,
+      "terrainCells": 35428,
+      "terrainDepthMetres": 0.011357788927853107,
+      "terrainHash": "250f93b4",
+      "crashCauses": [
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [
+          "crash-front@467"
+        ],
+        [],
+        [],
+        [
+          "crash-front@468"
+        ],
+        [
+          "crash-front@456"
+        ]
+      ]
+    },
+    {
+      "suite": "valley-event",
+      "race": "event valley-ridge-mx-moto-1",
+      "circuit": "valley-ridge-mx",
+      "weather": "clear",
+      "seed": 41001,
+      "riders": 10,
+      "classifiedFinishers": 10,
+      "retired": [],
+      "configuredLaps": 4,
+      "nominalRiderLapExposure": 40,
+      "actualCompletedRiderLaps": "Not exported by original script; lapped finishers are allowed by Race.step",
+      "raceSeconds": 425.51,
+      "raceLimitSeconds": 1200,
+      "crashes": [
+        2,
+        0,
+        1,
+        0,
+        1,
+        2,
+        0,
+        0,
+        0,
+        0
+      ],
+      "totalCrashes": 6,
+      "crashesPerNominalRiderLap": 0.15,
+      "aggregateCrashLimit": 0.5,
+      "worstRiderCrashes": 2,
+      "individualCrashLimit": 2,
+      "longestStopSeconds": 13.69,
+      "stopLimitStrictlyBelowSeconds": 20,
+      "holeshot": 8,
+      "terrainCells": 57775,
+      "terrainDepthMetres": 0.03924708068370819,
+      "terrainHash": "a7399667",
+      "crashCauses": [
+        [
+          "crash-front@766",
+          "crash-front@766"
+        ],
+        [],
+        [
+          "crash-front@603"
+        ],
+        [],
+        [
+          "contact@521"
+        ],
+        [
+          "contact@860",
+          "crash-front@766"
+        ],
+        [],
+        [],
+        [],
+        []
+      ]
+    }
+  ],
+  "confirmedFinisherStarts": 106,
+  "nominalRiderLapExposure": 232,
+  "actualCompletedRiderLaps": "Not exported by unchanged runner; nominal exposure must not be described as actual completed laps. Race.step flags lapped finishers at first crossing after leader.",
+  "totalCrashes": 20,
+  "failureAttribution": {
+    "arena60729": "Confirmed integration regression: exact unchanged case passes on untouched2578271 with same Node24.22.3 and installed dependencies. Specific mechanism assigned to49.",
+    "valleyEvent": "Prior upstream rider9 three-crash failure is not reproduced; current exact event passes. No claim that a particular change caused this improvement."
+  },
+  "baselineSourceCommit": "2578271913c264f5ffd6131afea30723df14b65b",
+  "upstreamCIReportCommit": "c9c94c7029dbc3e29b18101ef7ccea0a897184d1",
+  "failures": [
+    "arena-nord-sx rain seed 60729: one rider crashed 2 times in 2 laps (rider 7: crash-front at 466.3 m (83.9 s), crash-front at 456.0 m (176.7 s))"
+  ],
+  "artifacts": [
+    {
+      "file": "47-offroad-calibration.json",
+      "sha256": "962d469bfd818dbd2dd7fbc5b5e08df6a2bd463ecc614cf2e7892ea294bdd18a",
+      "bytes": 11789
+    },
+    {
+      "file": "47-offroad-calibration.log",
+      "sha256": "14a6136204a6e7d1c52e0fa92a40782dae6fece2b8c295ac5e60411b077b56a9",
+      "bytes": 269
+    },
+    {
+      "file": "47-motocross-full-grid.json",
+      "sha256": "c29f3db8208238896f0898e9f2c6a925f16c66c4ce2576b7396e0fd5d1c648da",
+      "bytes": 35456
+    },
+    {
+      "file": "47-motocross-full-grid.log",
+      "sha256": "5fb4b0653903534dfe4d73f64500f2e2d68994e9cdb4d9ef069168d1fee1d499",
+      "bytes": 1747
+    },
+    {
+      "file": "47-motocross-full-grid-interrupted.log",
+      "sha256": "bb0ad467ba38786c31b502d057c3d44f0fd5a72dcb8b462f02bb570a401dcb72",
+      "bytes": 713
+    },
+    {
+      "file": "47-valley-event.json",
+      "sha256": "d00b7842b1481f5543936cd6f1a9c2be8b6f52e02f675088ebb0350908d41e16",
+      "bytes": 4320
+    },
+    {
+      "file": "47-valley-event.log",
+      "sha256": "89fde77f1c8b98201f283391d48dd19cd6984e23b8788ccb66e94dba292ea1e3",
+      "bytes": 347
+    },
+    {
+      "file": "47-inputs-before.json",
+      "sha256": "070142d5754ea68e5e5db5ec84104c76d71b2ca48f8e9ad457f00e093ac53528",
+      "bytes": 250204
+    },
+    {
+      "file": "47-inputs-after.json",
+      "sha256": "070142d5754ea68e5e5db5ec84104c76d71b2ca48f8e9ad457f00e093ac53528",
+      "bytes": 250204
+    },
+    {
+      "file": "47-upstream-ci-evidence.json",
+      "sha256": "c64e8cb2c8ae936a17beddb185ea4b3591d6c74e9d2b8a19279c4f7a16a32096",
+      "bytes": 4473
+    },
+    {
+      "file": "47-upstream-arena-60729.json",
+      "sha256": "3b630e639d7649cdfa41afe200829c1c5961a12f924163e18921ef9a3740a885",
+      "bytes": 4638
+    },
+    {
+      "file": "47-upstream-arena-60729.log",
+      "sha256": "71278738b046635d6e10b8cb49e43f7e8372d40e40e8e94475eda57ce9165939",
+      "bytes": 349
+    },
+    {
+      "file": "47-upstream-arena-60729-receipt.json",
+      "sha256": "aed71703a4642d4714e3aebeab84de0eaceaf43daab482ea8b582d29356ef83c",
+      "bytes": 173329
+    },
+    {
+      "file": "47-upstream-source-receipt.json",
+      "sha256": "cb6ef0fd472a7f2ea5b41bda5d2958098bf0fc2f8d9854d254defec18d0794db",
+      "bytes": 586
+    }
+  ],
+  "scope": "Native seeded AI acceptance. Not human-input player handling or browser/GPU/rendered animation acceptance.",
+  "baselineComparison": {
+    "sourceCommit": "2578271913c264f5ffd6131afea30723df14b65b",
+    "sourceFingerprint": "d32aa557b2619b63883312be75df7735fb8ede13b801bf5315e642b2664c88bf",
+    "passed": true,
+    "raceSeconds": 219.58,
+    "crashes": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0
+    ],
+    "longestStopSeconds": 10.75,
+    "classifiedFinishers": 12,
+    "retired": [],
+    "baselineAndCurrentFilesModesUnchanged": true,
+    "excludedFromPrimaryTotals": true
+  },
+  "finalProtectedInputCheckAfterBaseline": true
+}

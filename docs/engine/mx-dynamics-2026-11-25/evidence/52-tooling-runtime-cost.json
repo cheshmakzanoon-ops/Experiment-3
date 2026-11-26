@@ -1,0 +1,398 @@
+{
+  "assignment": 52,
+  "completedUtc": "2026-11-26T00:02:55.752159+00:00",
+  "sourceFingerprintBefore": "4c041cb338d0fa480e0514ee905137a24061494b98b9899949238f6b137be790",
+  "sourceFingerprintAfter": "4c041cb338d0fa480e0514ee905137a24061494b98b9899949238f6b137be790",
+  "sourceFiles": 1129,
+  "observedInputsBefore": 1388,
+  "observedInputsAfter": 1388,
+  "materializedProtectedInputs": 255,
+  "changedInputs": [],
+  "lintInputChanges": [],
+  "manifestDigests": {
+    "before": "b7bbd33b18443ea8efa45b7b44293555197e62fe85243bfdcd471f5fbb5bd07e",
+    "after": "b7bbd33b18443ea8efa45b7b44293555197e62fe85243bfdcd471f5fbb5bd07e"
+  },
+  "gitHeadObserved": "b2879248fbce047a299c45b84476adbcc3dbc71f",
+  "toolVersions": {
+    "typescript": "5.9.3",
+    "eslint": "9.36.0",
+    "vite": "7.1.7",
+    "vitest": "3.2.4"
+  },
+  "node": "v24.22.3",
+  "commands": [
+    {
+      "label": "initial-full-production-types",
+      "command": [
+        "node",
+        "--max-old-space-size=2048",
+        "node_modules/typescript/bin/tsc",
+        "--project",
+        "docs/engine/mx-dynamics-2026-11-25/evidence/tsconfig-production.json"
+      ],
+      "exitCode": 137,
+      "diagnosticsBytes": 0,
+      "status": "Resource-blocked; process killed. Root then removed the known unused temporary Chromium cache from tmpfs."
+    },
+    {
+      "label": "changed-engine-types",
+      "command": [
+        "node",
+        "--max-old-space-size=512",
+        "node_modules/typescript/bin/tsc",
+        "--project",
+        "test-results/agent52/tsconfig-engine.json",
+        "--pretty",
+        "false"
+      ],
+      "exitCode": 0,
+      "diagnosticsBytes": 0
+    },
+    {
+      "label": "full-production-types-after-cache-release",
+      "command": [
+        "node",
+        "--max-old-space-size=2048",
+        "node_modules/typescript/bin/tsc",
+        "--project",
+        "docs/engine/mx-dynamics-2026-11-25/evidence/tsconfig-production.json",
+        "--pretty",
+        "false"
+      ],
+      "exitCode": 0,
+      "diagnosticsBytes": 0
+    },
+    {
+      "label": "flight-tests-types",
+      "command": [
+        "node",
+        "--max-old-space-size=1024",
+        "node_modules/typescript/bin/tsc",
+        "--project",
+        "test-results/agent52/tsconfig-flight-tests.json",
+        "--pretty",
+        "false"
+      ],
+      "exitCode": 0,
+      "diagnosticsBytes": 0
+    },
+    {
+      "label": "pose-tests-types",
+      "command": [
+        "node",
+        "--max-old-space-size=1024",
+        "node_modules/typescript/bin/tsc",
+        "--project",
+        "test-results/agent52/tsconfig-pose-tests.json",
+        "--pretty",
+        "false"
+      ],
+      "exitCode": 0,
+      "diagnosticsBytes": 0
+    },
+    {
+      "label": "contact-tests-types",
+      "command": [
+        "node",
+        "--max-old-space-size=1024",
+        "node_modules/typescript/bin/tsc",
+        "--project",
+        "test-results/agent52/tsconfig-contact-tests.json",
+        "--pretty",
+        "false"
+      ],
+      "exitCode": 0,
+      "diagnosticsBytes": 0
+    },
+    {
+      "label": "production-build",
+      "command": [
+        "node",
+        "--max-old-space-size=2048",
+        "node_modules/vite/bin/vite.js",
+        "build"
+      ],
+      "exitCode": 0,
+      "modules": 1106,
+      "reportedBuildSeconds": 15.19,
+      "ipGuard": "clean",
+      "nonblockingWarning": "Some chunks are larger than500kB after minification."
+    },
+    {
+      "label": "runtime-cost",
+      "command": [
+        "node",
+        "--max-old-space-size=512",
+        "--experimental-transform-types",
+        "docs/engine/mx-dynamics-2026-11-25/evidence/52-runtime-cost.ts"
+      ],
+      "exitCode": 0
+    },
+    {
+      "label": "shared-core-units",
+      "command": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "tests/bike.test.ts",
+        "tests/wheel-pose.test.ts",
+        "tests/tire-motion-invariance.test.ts",
+        "tests/session-identity.test.ts",
+        "tests/gp-drive-traction.test.ts",
+        "tests/gp-front-contact-steering.test.ts",
+        "tests/recording-publication-ownership.test.ts",
+        "--maxWorkers=1",
+        "--reporter=default",
+        "--reporter=json",
+        "--outputFile=test-results/agent52/shared-core-vitest.json"
+      ],
+      "exitCode": 0
+    },
+    {
+      "label": "changed-code-eslint",
+      "command": [
+        "node",
+        "node_modules/eslint/bin/eslint.js",
+        "docs/engine/mx-dynamics-2026-11-25/evidence/52-runtime-cost.ts",
+        "scripts/bench/motocross-landing-oracles.ts",
+        "scripts/bench/motocross-player-dynamics.ts",
+        "scripts/bench/motocross-rider-acceleration.ts",
+        "scripts/bench/motocross-rotor-energy.ts",
+        "scripts/bench/motocross-spring-work.ts",
+        "scripts/bench/mx-dynamics-preservation.ts",
+        "src/core/session-identity.ts",
+        "src/rendering/wheel-pose.ts",
+        "src/simulation/bike-vehicle.ts",
+        "src/simulation/bike.ts",
+        "src/simulation/offroad/ai.ts",
+        "src/simulation/offroad/contact-impulse.ts",
+        "src/simulation/offroad/dirt-bike-vehicle.ts",
+        "src/simulation/offroad/mx-ground-physics.ts",
+        "src/simulation/offroad/session.ts",
+        "tests/motocross-ai.test.ts",
+        "tests/motocross-air-drag.test.ts",
+        "tests/motocross-automatic-shift.test.ts",
+        "tests/motocross-body-transport.test.ts",
+        "tests/motocross-bounded-stops.test.ts",
+        "tests/motocross-brake-budget.test.ts",
+        "tests/motocross-collision.test.ts",
+        "tests/motocross-contact-consistency.test.ts",
+        "tests/motocross-contact-time-coherence.test.ts",
+        "tests/motocross-contact-traction.test.ts",
+        "tests/motocross-contact-work-isolation.test.ts",
+        "tests/motocross-coupled-invariants.test.ts",
+        "tests/motocross-coupled-step-contract.test.ts",
+        "tests/motocross-cross-slope.test.ts",
+        "tests/motocross-drive-budget.test.ts",
+        "tests/motocross-drive-reserve.test.ts",
+        "tests/motocross-dynamic-suspension.test.ts",
+        "tests/motocross-final-contact-frame.test.ts",
+        "tests/motocross-flight-controls.ts",
+        "tests/motocross-front-steering-authority.test.ts",
+        "tests/motocross-gate-placement.test.ts",
+        "tests/motocross-ground-frame-transport.test.ts",
+        "tests/motocross-hard-stop-integration.test.ts",
+        "tests/motocross-joint-reversal.test.ts",
+        "tests/motocross-jump-corridor.test.ts",
+        "tests/motocross-jump-traffic-priority.test.ts",
+        "tests/motocross-landing-momentum.test.ts",
+        "tests/motocross-landing-observability.test.ts",
+        "tests/motocross-landing-plan.test.ts",
+        "tests/motocross-landing-prediction.test.ts",
+        "tests/motocross-live-pose-coherence.test.ts",
+        "tests/motocross-planar-transport.test.ts",
+        "tests/motocross-player-dynamics.test.ts",
+        "tests/motocross-push-gait.test.ts",
+        "tests/motocross-recovery-replay.test.ts",
+        "tests/motocross-remount-continuity.test.ts",
+        "tests/motocross-remount-handoff.test.ts",
+        "tests/motocross-rider-blending.test.ts",
+        "tests/motocross-rotor-phase-energy.test.ts",
+        "tests/motocross-slope-momentum.test.ts",
+        "tests/motocross-supported-convergence.test.ts",
+        "tests/motocross-test-track.ts",
+        "tests/motocross-wheel-motion-consistency.test.ts",
+        "tests/motocross-wheel-pickup.test.ts",
+        "tests/offroad.test.ts",
+        "tests/session-identity.test.ts"
+      ],
+      "exitCode": 0,
+      "diagnosticsBytes": 0,
+      "files": 62
+    }
+  ],
+  "strictTestConfigurations": {
+    "engine": {
+      "extends": "../../tsconfig.json",
+      "include": [
+        "../../src/build-flags.d.ts",
+        "../../src/core/session-identity.ts",
+        "../../src/rendering/wheel-pose.ts",
+        "../../src/simulation/bike-vehicle.ts",
+        "../../src/simulation/bike.ts",
+        "../../src/simulation/offroad/ai.ts",
+        "../../src/simulation/offroad/contact-impulse.ts",
+        "../../src/simulation/offroad/dirt-bike-vehicle.ts",
+        "../../src/simulation/offroad/mx-ground-physics.ts",
+        "../../src/simulation/offroad/session.ts"
+      ],
+      "exclude": []
+    },
+    "flight-tests": {
+      "extends": "../../tsconfig.json",
+      "include": [
+        "../../src/build-flags.d.ts",
+        "../../tests/motocross-dynamic-suspension.test.ts",
+        "../../tests/motocross-flight-controls.ts",
+        "../../tests/motocross-air-drag.test.ts"
+      ],
+      "exclude": []
+    },
+    "pose-tests": {
+      "extends": "../../tsconfig.json",
+      "include": [
+        "../../src/build-flags.d.ts",
+        "../../tests/motocross-live-pose-coherence.test.ts",
+        "../../tests/motocross-joint-reversal.test.ts",
+        "../../tests/motocross-flight-controls.ts"
+      ],
+      "exclude": []
+    },
+    "contact-tests": {
+      "extends": "../../tsconfig.json",
+      "include": [
+        "../../src/build-flags.d.ts",
+        "../../tests/motocross-collision.test.ts",
+        "../../tests/motocross-hard-stop-integration.test.ts"
+      ],
+      "exclude": []
+    }
+  },
+  "lintInputHashes": {
+    "docs/engine/mx-dynamics-2026-11-25/evidence/52-runtime-cost.ts": "7fdfc548a6b6ad456640a547cfbb9da985ca863a9385d57cc68e147c3337a6df",
+    "scripts/bench/motocross-landing-oracles.ts": "f220c750a9366a34c86bc8645cb9677e490140e5eea14a0e85805102c78e2f9c",
+    "scripts/bench/motocross-player-dynamics.ts": "2372bbc3e9b317c1d9510829bb836137db3752a8198e1835305cd34b6d65f58b",
+    "scripts/bench/motocross-rider-acceleration.ts": "4771c12423901d3db8ba8dfaca81a3a08abf4514d7578240d0286e785e1a7df1",
+    "scripts/bench/motocross-rotor-energy.ts": "d7384e8b4a09d8b66d9857390ce10e80f9667d1ba8353267639ec8c04b114122",
+    "scripts/bench/motocross-spring-work.ts": "9186f181f736b7f3978f2cb1f833280a6c63a94835fee44583ca95714f134027",
+    "scripts/bench/mx-dynamics-preservation.ts": "b9bb64bb3bf0c3f33aaae2c1b894b3d783f496627881595b289d45fd6f1f0417",
+    "src/core/session-identity.ts": "4184b2aa573b674137f15818866407c7193d2bd70307249bb92f36ea87fbaeba",
+    "src/rendering/wheel-pose.ts": "c3c224018a7b3586e73113e873514f1cffd715306516070804b22b47ee2c9207",
+    "src/simulation/bike-vehicle.ts": "ba916a4ab1a6830235fbfcf7f85885cba6dd9b71816eefff49fdf9f74d58a0ff",
+    "src/simulation/bike.ts": "abcd7fe3b0e1432073c42890549974a03821d0829c2f3bfe6c3cf5f54da0d7b8",
+    "src/simulation/offroad/ai.ts": "48b1a697e912e999dc04b423bdf3fab1fdf0204c7f656717d2063ea311e94462",
+    "src/simulation/offroad/contact-impulse.ts": "825d280cfd4c1769db8fee0abcdfa91989f4c6b73ac502e120f59f1061afa28e",
+    "src/simulation/offroad/dirt-bike-vehicle.ts": "7a72b2747d4469bc652ce965afab4a8f94a7b1606073291c6d36045182b9361e",
+    "src/simulation/offroad/mx-ground-physics.ts": "68b04234548a2b037f4769d38343c26ec712a61fd9261fd6dac44641c81ca4e3",
+    "src/simulation/offroad/session.ts": "2267a4bf561b073b44aca94d147349c534a46cc84d822fe904a8b505665237e5",
+    "tests/motocross-ai.test.ts": "9db15996c9d42cf26e92e8bb117b71ad7c73ae7ed06d715832527791417f97b6",
+    "tests/motocross-air-drag.test.ts": "7539d5f6feb1f9268896fcc3b0264b2385ac2a3321191b84b0a3a02a50e01c4a",
+    "tests/motocross-automatic-shift.test.ts": "af8ec9a49cf93e09af60b13666cbfbbe7f5dc0ac6e81ed6085332cbe07d8823b",
+    "tests/motocross-body-transport.test.ts": "14c1cf960a3afb5a0f2de1c24c1572f3cf4ad7292cac54b6ded3995563998d4b",
+    "tests/motocross-bounded-stops.test.ts": "834fdbdf8fff1e5d9f5f04007c26c1dcd07422c22ffa7515caeaa3ec8911f394",
+    "tests/motocross-brake-budget.test.ts": "8d81d3c09e1bb12d7261e4e6d0f2de29b5fe697d3f34bf3e9690567f09fc219e",
+    "tests/motocross-collision.test.ts": "b0c1013115f3046482e87dc554a27d9d06a7a4b73f60b2e673aa1db684b701ff",
+    "tests/motocross-contact-consistency.test.ts": "70b9dedcc8ad4df235596d6235b07439971bccf341fbfc2aecd3b63509cefd8a",
+    "tests/motocross-contact-time-coherence.test.ts": "901a6d85dd1bf7e9254a7deebc5ebcb305d7d6dad892f7d50fecd236ec2bb196",
+    "tests/motocross-contact-traction.test.ts": "1f9b84d80f8661d1232e1e9299e9a31a9a8b76afc018268c7e15516df0865a4c",
+    "tests/motocross-contact-work-isolation.test.ts": "9e528d5bf7f4756b4989ba6ea920fe8434abe87627a5201695b28128a5a4474c",
+    "tests/motocross-coupled-invariants.test.ts": "580cba992eb944e25d8290a3b72616a718fadc25c848fc3697c4ff325acaf584",
+    "tests/motocross-coupled-step-contract.test.ts": "518baccf0d91b7c9de21ec33afe9200cc6af756d106c0c3ba17f2f5d6eb5dcca",
+    "tests/motocross-cross-slope.test.ts": "ba8f890d63b565fb34736ccdfdce37c49a31c8d170b4c462c4f0f2979310363f",
+    "tests/motocross-drive-budget.test.ts": "1c21f668c97d79e68e1756214bc3250e88091d5ebfb83f1f014fda843121374d",
+    "tests/motocross-drive-reserve.test.ts": "0ba89e1ae35bb0b7788245c28a824207d772357e823b0aaea170758a080b649f",
+    "tests/motocross-dynamic-suspension.test.ts": "e09d17ecc241508d90b3fd65bca723c8d5f02e021350e28c451d910b4ee5ae50",
+    "tests/motocross-final-contact-frame.test.ts": "b4cc950229fc0db55e14d91041f390cd1cddb87a6c74e6418f4628ce903ed175",
+    "tests/motocross-flight-controls.ts": "9e829de8b0e034103f1a1867608498848caeb8eccfd9696d7296e6d92270cda1",
+    "tests/motocross-front-steering-authority.test.ts": "36ebc718fad525ec446a485aaadeddafbb727f5f92ff819f34ce6c69f20ef6b3",
+    "tests/motocross-gate-placement.test.ts": "be993b8a77f4cd266127b074e5ee607f93a95dec161668c47348b9652777cc75",
+    "tests/motocross-ground-frame-transport.test.ts": "c0600147a484f36d39b29ba4f2be815044bb3bffbebd278fa449e0767c759c0b",
+    "tests/motocross-hard-stop-integration.test.ts": "01c8959340bfde433ad11cfab9fda4dd4e8e1b6a961ad1e44085ae220329ab66",
+    "tests/motocross-joint-reversal.test.ts": "af98eae832652a9e925375ce3d72b3b52b307388ff16b3832a6fef9c545aa4b3",
+    "tests/motocross-jump-corridor.test.ts": "6cd4682fb4cff98d583a7ff645ca6a817d4d076906d03005441621e46cfed86b",
+    "tests/motocross-jump-traffic-priority.test.ts": "640a7d4bf1cbe3cc78b3f3dca734953f72bbbc86288ef1d974ec831e375c49d5",
+    "tests/motocross-landing-momentum.test.ts": "e23716fc345d076cd2a2e04119810e99e4db5d81e46572b289865c233ff82063",
+    "tests/motocross-landing-observability.test.ts": "8ed5d637f4f20db83df269447ab215d2875aa91e65e645c8bc504fb9a6336ab7",
+    "tests/motocross-landing-plan.test.ts": "923897cfbbe7c834a32935e052a16e9a427b8344fde9e55df8ce40b1572a8b59",
+    "tests/motocross-landing-prediction.test.ts": "cefebe8149867049ba0426b391e5b7ec258bf64663a347cb6545ebe5e585596d",
+    "tests/motocross-live-pose-coherence.test.ts": "d055e3ceb79441291f953a3b6abf0cd662e45e07c8699863092836bcb440f08b",
+    "tests/motocross-planar-transport.test.ts": "a662a399cc1170ff5dcc8b2bfef4bf1dff8e35f4d124eecce3c295ea232db15f",
+    "tests/motocross-player-dynamics.test.ts": "59b7575afc3ee2b11594546da0dfb15abc5c9aa733c3344776181e9472f6f31e",
+    "tests/motocross-push-gait.test.ts": "ed33b4345529827d5bb22351f01fa24a3782adefa34f7df13f0015f9bd06e248",
+    "tests/motocross-recovery-replay.test.ts": "7e8d40351f80343adc6ee737da5140717425be47548dcef0ab26846942c2ba82",
+    "tests/motocross-remount-continuity.test.ts": "de6d4f447f7a7ae5fedad68f7972c1cd5bc386eb9c06a4e78f541be3651bf44b",
+    "tests/motocross-remount-handoff.test.ts": "0c54ab92253f559d9852a868fc9c66aa1c9f8b4fbb3b91b5cbc1f8adb6628d47",
+    "tests/motocross-rider-blending.test.ts": "f3c42dd285ed4c00e003861533e6e95ff453502858e94f5e20bfd168120f7f2e",
+    "tests/motocross-rotor-phase-energy.test.ts": "cffaa05bc573368beabab89b8d221aa6b4c27c08ad87b723795465e49f61f530",
+    "tests/motocross-slope-momentum.test.ts": "2ae54620e9541ffb2a2acbc0a046eefbefdf7b3bd4a3ceedc5ffd22759736c5f",
+    "tests/motocross-supported-convergence.test.ts": "471afbb321350c924cf45b665fa9e693b4b1ac756c24ef3b7daada66785d5eba",
+    "tests/motocross-test-track.ts": "1bf89fffcf5833895b5c02e6d6b343aa63d44a24636e122512e6d311272a2e7f",
+    "tests/motocross-wheel-motion-consistency.test.ts": "16506ea9755442474c2f7576d65f8695a2374b501db5b53e71b9a3ef489991a3",
+    "tests/motocross-wheel-pickup.test.ts": "fd35948fae7d3d176961f1b89546a2e51b4007fc565e68a3d9c960e44b00cd0d",
+    "tests/offroad.test.ts": "24f14acc9da96ac201a6d7354594d51307bd6d07553c560a89f0b4cc57a4b05f",
+    "tests/session-identity.test.ts": "0463c2c5d587bc79f65124cbf4cfbc2412a80c3eeb201f1b957d155e097f6f7e"
+  },
+  "buildIdentity": {
+    "version": 1,
+    "commit": null,
+    "fingerprint": "4c041cb338d0fa480e0514ee905137a24061494b98b9899949238f6b137be790",
+    "variant": "product",
+    "edition": "full"
+  },
+  "unitSummary": {
+    "success": true,
+    "numTotalTests": 181,
+    "numPassedTests": 181,
+    "numFailedTests": 0,
+    "numPendingTests": 0,
+    "numTodoTests": 0
+  },
+  "unitFiles": [
+    {
+      "path": "tests/bike.test.ts",
+      "tests": 10,
+      "status": "passed",
+      "sha256": "a7285dbdc68c31d9f664b6edab161065e81422dd30660bcea5712934ed11e065"
+    },
+    {
+      "path": "tests/gp-drive-traction.test.ts",
+      "tests": 8,
+      "status": "passed",
+      "sha256": "1fdc3a8d795dafb546a19483bb2cde1de2309c8498bb285409e25cf42ba6435e"
+    },
+    {
+      "path": "tests/gp-front-contact-steering.test.ts",
+      "tests": 10,
+      "status": "passed",
+      "sha256": "6a8a40955593d227e1efa38c58c7228fedf7ef75a476df615905ce1106f6ac59"
+    },
+    {
+      "path": "tests/recording-publication-ownership.test.ts",
+      "tests": 22,
+      "status": "passed",
+      "sha256": "ae3eccc6f57a2623c435ad90ce13b7d5516b7b62585250c087914457ff600fc2"
+    },
+    {
+      "path": "tests/session-identity.test.ts",
+      "tests": 110,
+      "status": "passed",
+      "sha256": "0463c2c5d587bc79f65124cbf4cfbc2412a80c3eeb201f1b957d155e097f6f7e"
+    },
+    {
+      "path": "tests/tire-motion-invariance.test.ts",
+      "tests": 7,
+      "status": "passed",
+      "sha256": "ee902aa3c7ef955ffe1c55a9647285ca33610b81a320c17c39b155cc7b451b7a"
+    },
+    {
+      "path": "tests/wheel-pose.test.ts",
+      "tests": 14,
+      "status": "passed",
+      "sha256": "308e84ecb827a7d3b7718f892f64bdaa2b63e8153bb4eb54929a5c7e18974f09"
+    }
+  ],
+  "cpuAudit": "52-runtime-cost.json",
+  "browser": "Not attempted; prior OS socket restriction remains. CPU and bundle results do not establish browser/GPU performance.",
+  "productionOrTestEdits": []
+}

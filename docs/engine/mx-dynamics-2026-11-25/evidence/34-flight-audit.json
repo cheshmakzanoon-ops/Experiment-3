@@ -1,0 +1,319 @@
+{
+  "assignment": 34,
+  "decision": "Retain the existing production flight aid; both tested alternatives are rejected.",
+  "scope": "Read-only controller experiments; no production or test source changes.",
+  "wholeLapTrials": {
+    "sourceStable": true,
+    "source": {
+      "src/simulation/offroad/ai.ts": "701fa894de6ae3455ce5cbef1f0351478691815883443b6d158e324775407260",
+      "src/simulation/offroad/dirt-bike-vehicle.ts": "7fa932378aa37f4e93a51900e3e40f3aafa16a2c87f1a65537f5799fa31fa272",
+      "src/simulation/offroad/mx-ground-physics.ts": "5ba192c09576465e2b63f377372141430f9ddb574666bc7b711af2b4891dbfe3",
+      "src/simulation/offroad/rider-weight.ts": "5027085c4bb2b192d89a0368d56ca9296b34ed5130e936db0741eed30304ad96",
+      "src/simulation/offroad/contact-impulse.ts": "825d280cfd4c1769db8fee0abcdfa91989f4c6b73ac502e120f59f1061afa28e"
+    },
+    "results": [
+      {
+        "variantName": "production",
+        "circuit": "valley-ridge-mx",
+        "completed": 2,
+        "seconds": 183.62499999991516,
+        "longestStall": 0.18333333333333332,
+        "crashes": []
+      },
+      {
+        "variantName": "production",
+        "circuit": "arena-nord-sx",
+        "completed": 2,
+        "seconds": 167.15833333326347,
+        "longestStall": 1.3083333333333311,
+        "crashes": [
+          {
+            "cause": "grip-lowside",
+            "s": 474.6422808680121,
+            "time": 65.03750000002302
+          },
+          {
+            "cause": "crash-flat",
+            "s": 468.7968885917081,
+            "time": 146.98749999994848
+          }
+        ]
+      },
+      {
+        "variantName": "constant_acceleration",
+        "circuit": "valley-ridge-mx",
+        "completed": 2,
+        "seconds": 203.91666666656337,
+        "longestStall": 0.40833333333333377,
+        "crashes": [
+          {
+            "cause": "crash-front",
+            "s": 594.3910326449216,
+            "time": 148.84166666661346
+          }
+        ]
+      },
+      {
+        "variantName": "constant_acceleration",
+        "circuit": "arena-nord-sx",
+        "completed": 2,
+        "seconds": 168.66666666659543,
+        "longestStall": 6.891666666666799,
+        "crashes": [
+          {
+            "cause": "crash-front",
+            "s": 472.79406819014014,
+            "time": 141.4083333332869
+          }
+        ]
+      },
+      {
+        "variantName": "terminal_rate",
+        "circuit": "valley-ridge-mx",
+        "completed": 2,
+        "seconds": 169.16666666659498,
+        "longestStall": 7.083333333333475,
+        "crashes": []
+      },
+      {
+        "variantName": "terminal_rate",
+        "circuit": "arena-nord-sx",
+        "completed": 2,
+        "seconds": 172.5999999999252,
+        "longestStall": 1.3083333333333311,
+        "crashes": [
+          {
+            "cause": "crash-front",
+            "s": 473.459393240361,
+            "time": 64.81250000002322
+          },
+          {
+            "cause": "contact",
+            "s": 462.3927709460992,
+            "time": 149.712499999946
+          }
+        ]
+      }
+    ]
+  },
+  "controlledTakeoff": {
+    "sourceStable": true,
+    "source": {
+      "src/simulation/offroad/ai.ts": "701fa894de6ae3455ce5cbef1f0351478691815883443b6d158e324775407260",
+      "src/simulation/offroad/dirt-bike-vehicle.ts": "7fa932378aa37f4e93a51900e3e40f3aafa16a2c87f1a65537f5799fa31fa272",
+      "src/simulation/offroad/mx-ground-physics.ts": "33060b3c1d5842c31e86525c03ca8570bb5cb884b7ae3406eaed899f04e3981c",
+      "src/simulation/offroad/rider-weight.ts": "5027085c4bb2b192d89a0368d56ca9296b34ed5130e936db0741eed30304ad96",
+      "src/simulation/offroad/contact-impulse.ts": "825d280cfd4c1769db8fee0abcdfa91989f4c6b73ac502e120f59f1061afa28e"
+    },
+    "results": [
+      {
+        "variantName": "production",
+        "checkpoint": {
+          "clock": 62.65000000002289,
+          "s": 452.01389976351004,
+          "x": -18.400773339734165,
+          "z": 25.134232665192233,
+          "y": 2.569797096530212,
+          "vy": 7.2519238020001975,
+          "speed": 12.044771864920138,
+          "heading": -1.7524161841583585,
+          "pitch": 0.6045161540805647,
+          "pitchRate": -1.1397105680284014,
+          "yaw": -0.0008452071104960083,
+          "yawRate": -0.202849706519042,
+          "slide": -0.03912150229118471,
+          "frontSpin": 38.560830184589314,
+          "rearSpin": 40.41775739653613,
+          "body": 0.10256633824589478,
+          "bodyRate": -1.026200954572665,
+          "target": -0.13218113543662147,
+          "landingIn": 1.400833333333334
+        },
+        "landing": {
+          "time": 64.07557579829165,
+          "s": 468.585257011939,
+          "distance": 16.90899793187678,
+          "takeoffSpeed": 14.081648658392103,
+          "airTime": 1.4297424649344332,
+          "pitchError": 0.08601286548512702,
+          "slope": -0.23570176816318877,
+          "normalSpeed": 3.829131943483085,
+          "yawError": -7.487625155860858e-08,
+          "lateralSpeed": -0.03912063280595505,
+          "bottomSpeed": 5.055375753989207,
+          "outcome": "bottomed"
+        },
+        "peakBody": 0.7192238645618153,
+        "crashes": [],
+        "final": {
+          "s": 473.9865579986064,
+          "lateral": -0.1265549118859859,
+          "speed": 11.173110955337744,
+          "pitch": -0.843797100076026,
+          "pitchRate": 0.5370332054055708,
+          "riding": true
+        },
+        "identicalTakeoff": true,
+        "maxBallisticDifference": 0,
+        "commonFreeSteps": 172,
+        "maximumBodyTorqueNm": 61.1340284877543,
+        "absoluteLandingTargetErrorRad": 0.01398713451487299
+      },
+      {
+        "variantName": "constant_acceleration",
+        "checkpoint": {
+          "clock": 62.65000000002289,
+          "s": 452.01389976351004,
+          "x": -18.400773339734165,
+          "z": 25.134232665192233,
+          "y": 2.569797096530212,
+          "vy": 7.2519238020001975,
+          "speed": 12.044771864920138,
+          "heading": -1.7524161841583585,
+          "pitch": 0.6045161540805647,
+          "pitchRate": -1.1397105680284014,
+          "yaw": -0.0008452071104960083,
+          "yawRate": -0.202849706519042,
+          "slide": -0.03912150229118471,
+          "frontSpin": 38.560830184589314,
+          "rearSpin": 40.41775739653613,
+          "body": 0.10256633824589478,
+          "bodyRate": -1.026200954572665,
+          "target": -0.13218113543662147,
+          "landingIn": 1.400833333333334
+        },
+        "landing": {
+          "time": 64.07969921901591,
+          "s": 468.63232026294565,
+          "distance": 16.956878101049824,
+          "takeoffSpeed": 14.081648658392103,
+          "airTime": 1.4338658856586903,
+          "pitchError": 0.18610396552148617,
+          "slope": -0.2488573553538228,
+          "normalSpeed": 3.698925423790794,
+          "yawError": -7.271445548995131e-08,
+          "lateralSpeed": -0.039120657997057676,
+          "bottomSpeed": 4.955089240950177,
+          "outcome": "bottomed"
+        },
+        "peakBody": 0.9237724344739657,
+        "crashes": [],
+        "final": {
+          "s": 474.00515995056423,
+          "lateral": -0.11457584387393638,
+          "speed": 11.294283029922392,
+          "pitch": -0.9865882938910545,
+          "pitchRate": 0.04310533135045737,
+          "riding": true
+        },
+        "identicalTakeoff": true,
+        "maxBallisticDifference": 0,
+        "commonFreeSteps": 172,
+        "maximumBodyTorqueNm": 78.52065693028709,
+        "absoluteLandingTargetErrorRad": 0.08610396552148616
+      },
+      {
+        "variantName": "terminal_rate",
+        "checkpoint": {
+          "clock": 62.65000000002289,
+          "s": 452.01389976351004,
+          "x": -18.400773339734165,
+          "z": 25.134232665192233,
+          "y": 2.569797096530212,
+          "vy": 7.2519238020001975,
+          "speed": 12.044771864920138,
+          "heading": -1.7524161841583585,
+          "pitch": 0.6045161540805647,
+          "pitchRate": -1.1397105680284014,
+          "yaw": -0.0008452071104960083,
+          "yawRate": -0.202849706519042,
+          "slide": -0.03912150229118471,
+          "frontSpin": 38.560830184589314,
+          "rearSpin": 40.41775739653613,
+          "body": 0.10256633824589478,
+          "bodyRate": -1.026200954572665,
+          "target": -0.13218113543662147,
+          "landingIn": 1.400833333333334
+        },
+        "landing": {
+          "time": 64.08060727009979,
+          "s": 468.64268377654946,
+          "distance": 16.96742150367894,
+          "takeoffSpeed": 14.081648658392103,
+          "airTime": 1.4347739367425636,
+          "pitchError": 0.0783367414638656,
+          "slope": -0.2516096205417724,
+          "normalSpeed": 3.6720092470561343,
+          "yawError": -7.225052694552901e-08,
+          "lateralSpeed": -0.03912066340295837,
+          "bottomSpeed": 5.635452268396521,
+          "outcome": "bottomed"
+        },
+        "peakBody": 0.9979174524312551,
+        "crashes": [],
+        "final": {
+          "s": 473.9301231072917,
+          "lateral": -0.07221977132951807,
+          "speed": 11.208554571206788,
+          "pitch": -1.1150476472966944,
+          "pitchRate": -0.49858519528447026,
+          "riding": true
+        },
+        "identicalTakeoff": true,
+        "maxBallisticDifference": 0,
+        "commonFreeSteps": 172,
+        "maximumBodyTorqueNm": 84.82298345665669,
+        "absoluteLandingTargetErrorRad": 0.021663258536134405
+      }
+    ]
+  },
+  "finalProduction": {
+    "sourceStable": true,
+    "source": {
+      "src/simulation/offroad/ai.ts": "701fa894de6ae3455ce5cbef1f0351478691815883443b6d158e324775407260",
+      "src/simulation/offroad/dirt-bike-vehicle.ts": "7fa932378aa37f4e93a51900e3e40f3aafa16a2c87f1a65537f5799fa31fa272",
+      "src/simulation/offroad/mx-ground-physics.ts": "68b04234548a2b037f4769d38343c26ec712a61fd9261fd6dac44641c81ca4e3",
+      "src/simulation/offroad/rider-weight.ts": "5027085c4bb2b192d89a0368d56ca9296b34ed5130e936db0741eed30304ad96",
+      "src/simulation/offroad/contact-impulse.ts": "825d280cfd4c1769db8fee0abcdfa91989f4c6b73ac502e120f59f1061afa28e"
+    },
+    "results": [
+      {
+        "circuit": "valley-ridge-mx",
+        "completed": 2,
+        "seconds": 198.64166666656817,
+        "longestStall": 0.3583333333333336,
+        "crashes": [
+          {
+            "cause": "crash-front",
+            "s": 601.5875955299437,
+            "time": 60.98750000002157
+          },
+          {
+            "cause": "grip-lowside",
+            "s": 828.2773881805861,
+            "time": 95.37916666666209
+          }
+        ]
+      },
+      {
+        "circuit": "arena-nord-sx",
+        "completed": 2,
+        "seconds": 159.50833333327043,
+        "longestStall": 1.5833333333333302,
+        "crashes": []
+      }
+    ]
+  },
+  "regressions": {
+    "files": 4,
+    "passed": 66,
+    "failed": 0,
+    "suites": [
+      "motocross-riding",
+      "motocross-rider-weight",
+      "motocross-landing-prediction",
+      "motocross-contact-time-coherence"
+    ]
+  },
+  "attribution": "The whole-lap, controlled-takeoff and final-production runs use different recorded ground-source checkpoints. Compare variants only within their own experiment. No claim isolates changes from assignment32 across different departure states."
+}

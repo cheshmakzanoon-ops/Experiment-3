@@ -1,0 +1,643 @@
+{
+  "assignment": 59,
+  "generatedUtc": "2026-11-26T00:25:51.544358+00:00",
+  "status": "PASS",
+  "blockers": [],
+  "meaning": "Independent bounded pre-publication checks pass on the observed final candidate; this is not a claim that main was published, the browser ran, or hosted CI passed.",
+  "source": {
+    "fingerprint": "4c041cb338d0fa480e0514ee905137a24061494b98b9899949238f6b137be790",
+    "files": 1129,
+    "localCheckpoint": "b2879248fbce047a299c45b84476adbcc3dbc71f",
+    "comparisonBase": "c9c94c7029dbc3e29b18101ef7ccea0a897184d1",
+    "initialBaseline": "f3b39eb8e1b02fc0677086819fc384b6ceacefc2",
+    "runtimePaths": [
+      "src/core/session-identity.ts",
+      "src/rendering/wheel-pose.ts",
+      "src/simulation/bike-vehicle.ts",
+      "src/simulation/bike.ts",
+      "src/simulation/offroad/ai.ts",
+      "src/simulation/offroad/contact-impulse.ts",
+      "src/simulation/offroad/dirt-bike-vehicle.ts",
+      "src/simulation/offroad/mx-ground-physics.ts",
+      "src/simulation/offroad/session.ts"
+    ]
+  },
+  "candidate": {
+    "snapshotFiles": 184,
+    "codeFiles": 61,
+    "runtimeFiles": 9,
+    "testHelperFiles": 46,
+    "benchmarkFiles": 6,
+    "documentationEvidenceFiles": 123,
+    "runtimeTreeSha": "48e2f2104d145ee02697f3232bfd663d6ba48aec",
+    "snapshotFullTreeSha": "42d7bd2c324f05dedbd8bcbf03690cf6f4a39ff5",
+    "deletions": [],
+    "modeChanges": [],
+    "unexpectedPaths": [],
+    "allSelectedUtf8RegularFiles": true,
+    "selectedPaths": [
+      "docs/engine/mx-dynamics-2026-11-25/README.md",
+      "docs/engine/mx-dynamics-2026-11-25/agents/01-contact-audit.md",
+      "docs/engine/mx-dynamics-2026-11-25/agents/02-traction-audit.md",
+      "docs/engine/mx-dynamics-2026-11-25/agents/03-motion-audit.md",
+      "docs/engine/mx-dynamics-2026-11-25/agents/04-snapshot-audit.md",
+      "docs/engine/mx-dynamics-2026-11-25/agents/05-lifecycle-audit.md",
+      "docs/engine/mx-dynamics-2026-11-25/agents/06-validation-baseline.md",
+      "docs/engine/mx-dynamics-2026-11-25/agents/07-landing-momentum.md",
+      "docs/engine/mx-dynamics-2026-11-25/agents/08-front-steering.md",
+      "docs/engine/mx-dynamics-2026-11-25/agents/09-rider-blend.md",
+      "docs/engine/mx-dynamics-2026-11-25/agents/10-coupled-stops.md",
+      "docs/engine/mx-dynamics-2026-11-25/agents/11-gate-placement.md",
+      "docs/engine/mx-dynamics-2026-11-25/agents/12-remount-motion.md",
+      "docs/engine/mx-dynamics-2026-11-25/agents/13-contact-integration.md",
+      "docs/engine/mx-dynamics-2026-11-25/agents/14-ridden-lap-diagnosis.md",
+      "docs/engine/mx-dynamics-2026-11-25/agents/15-jump-corridor.md",
+      "docs/engine/mx-dynamics-2026-11-25/agents/16-drive-reserve.md",
+      "docs/engine/mx-dynamics-2026-11-25/agents/17-upstream-contact-review.md",
+      "docs/engine/mx-dynamics-2026-11-25/agents/18-upstream-motion-review.md",
+      "docs/engine/mx-dynamics-2026-11-25/agents/19-wheel-motion-consistency.md",
+      "docs/engine/mx-dynamics-2026-11-25/agents/20-bounded-contact.md",
+      "docs/engine/mx-dynamics-2026-11-25/agents/21-jump-guidance.md",
+      "docs/engine/mx-dynamics-2026-11-25/agents/22-cross-slope.md",
+      "docs/engine/mx-dynamics-2026-11-25/agents/23-remount-handoff.md",
+      "docs/engine/mx-dynamics-2026-11-25/agents/24-slope-momentum.md",
+      "docs/engine/mx-dynamics-2026-11-25/agents/25-launch-traction.md",
+      "docs/engine/mx-dynamics-2026-11-25/agents/26-drive-budget-review.md",
+      "docs/engine/mx-dynamics-2026-11-25/agents/27-planar-transport.md",
+      "docs/engine/mx-dynamics-2026-11-25/agents/28-spring-work.md",
+      "docs/engine/mx-dynamics-2026-11-25/agents/29-brake-budget.md",
+      "docs/engine/mx-dynamics-2026-11-25/agents/30-final-contact-frame.md",
+      "docs/engine/mx-dynamics-2026-11-25/agents/31-ridden-controller.md",
+      "docs/engine/mx-dynamics-2026-11-25/agents/32-contact-work.md",
+      "docs/engine/mx-dynamics-2026-11-25/agents/33-supported-accuracy-data.json",
+      "docs/engine/mx-dynamics-2026-11-25/agents/33-supported-accuracy.md",
+      "docs/engine/mx-dynamics-2026-11-25/agents/34-flight-control.md",
+      "docs/engine/mx-dynamics-2026-11-25/agents/35-rider-acceleration.md",
+      "docs/engine/mx-dynamics-2026-11-25/agents/36-recording-contract.md",
+      "docs/engine/mx-dynamics-2026-11-25/agents/37-coupled-lifecycle.md",
+      "docs/engine/mx-dynamics-2026-11-25/agents/38-landing-oracles.md",
+      "docs/engine/mx-dynamics-2026-11-25/agents/39-contact-oracles.md",
+      "docs/engine/mx-dynamics-2026-11-25/agents/40-ridden-flow.md",
+      "docs/engine/mx-dynamics-2026-11-25/agents/41-contact-time-contract.md",
+      "docs/engine/mx-dynamics-2026-11-25/agents/42-rotor-energy.md",
+      "docs/engine/mx-dynamics-2026-11-25/agents/43-transition-oracles.md",
+      "docs/engine/mx-dynamics-2026-11-25/agents/44-native-browser.md",
+      "docs/engine/mx-dynamics-2026-11-25/agents/45-wheel-pickup-contract.md",
+      "docs/engine/mx-dynamics-2026-11-25/agents/46-full-engine-units.md",
+      "docs/engine/mx-dynamics-2026-11-25/agents/47-race-calibration.md",
+      "docs/engine/mx-dynamics-2026-11-25/agents/48-animation-contract.md",
+      "docs/engine/mx-dynamics-2026-11-25/agents/49-wet-race-regression.md",
+      "docs/engine/mx-dynamics-2026-11-25/agents/50-preservation-audit.md",
+      "docs/engine/mx-dynamics-2026-11-25/agents/51-contact-contracts.md",
+      "docs/engine/mx-dynamics-2026-11-25/agents/52-tooling-runtime-cost.md",
+      "docs/engine/mx-dynamics-2026-11-25/agents/53-engineering-report.md",
+      "docs/engine/mx-dynamics-2026-11-25/agents/54-ci-attribution.md",
+      "docs/engine/mx-dynamics-2026-11-25/agents/55-source-review.md",
+      "docs/engine/mx-dynamics-2026-11-25/agents/56-claims-oracle-review.md",
+      "docs/engine/mx-dynamics-2026-11-25/agents/58-acceptance-reconciliation.md",
+      "docs/engine/mx-dynamics-2026-11-25/architecture.md",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/34-flight-audit.json",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/35-rider-acceleration.json",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/37-coupled-lifecycle.json",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/38-landing-oracles-coupled.json",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/38-landing-oracles-pre33.json",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/40-ridden-flow.json",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/42-rotor-energy.json",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/42-wheel-pickup-counterfactual.json",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/44-native-browser-build.log",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/44-native-browser-install.log",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/44-native-browser-ipc-launch.log",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/44-native-browser-system-launch.log",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/44-native-browser.json",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/45-wheel-pickup-contract.json",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/46-final-engine-units.json",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/46-full-engine-units.json",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/47-inputs-after.json",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/47-inputs-before.json",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/47-motocross-full-grid-interrupted.log",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/47-motocross-full-grid.json",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/47-motocross-full-grid.log",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/47-offroad-calibration.json",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/47-offroad-calibration.log",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/47-race-calibration-receipt.json",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/47-upstream-arena-60729-receipt.json",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/47-upstream-arena-60729.json",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/47-upstream-arena-60729.log",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/47-upstream-ci-evidence.json",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/47-upstream-source-receipt.json",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/47-valley-event.json",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/47-valley-event.log",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/48-animation-contract.json",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/49-motocross-full-grid.json",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/49-motocross-full-grid.log",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/49-valley-event.json",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/49-valley-event.log",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/49-wet-race-regression.json",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/50-preservation-audit.json",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/51-contact-contracts.json",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/52-build.log",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/52-runtime-cost.json",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/52-runtime-cost.ts",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/52-shared-core.log",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/52-tooling-runtime-cost.json",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/52-types-contact-tests.json",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/52-types-engine.json",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/52-types-flight-tests.json",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/52-types-pose-tests.json",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/54-ci-attribution.json",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/55-source-review.json",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/56-claims-oracle-review.json",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/58-acceptance-reconciliation.json",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/baseline-focused-tests.log",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/final-default-offroad-races.json",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/final-default-offroad-races.log",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/final-default-offroad-receipt.json",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/final-non-mx-snapshots.json",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/final-preservation.json",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/non-mx-baseline.json",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/root-air-drag.json",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/tsconfig-production.json",
+      "docs/engine/mx-dynamics-2026-11-25/integration.md",
+      "docs/engine/mx-dynamics-2026-11-25/reconciliation.md",
+      "scripts/bench/motocross-landing-oracles.ts",
+      "scripts/bench/motocross-player-dynamics.ts",
+      "scripts/bench/motocross-rider-acceleration.ts",
+      "scripts/bench/motocross-rotor-energy.ts",
+      "scripts/bench/motocross-spring-work.ts",
+      "scripts/bench/mx-dynamics-preservation.ts",
+      "src/core/session-identity.ts",
+      "src/rendering/wheel-pose.ts",
+      "src/simulation/bike-vehicle.ts",
+      "src/simulation/bike.ts",
+      "src/simulation/offroad/ai.ts",
+      "src/simulation/offroad/contact-impulse.ts",
+      "src/simulation/offroad/dirt-bike-vehicle.ts",
+      "src/simulation/offroad/mx-ground-physics.ts",
+      "src/simulation/offroad/session.ts",
+      "tests/motocross-ai.test.ts",
+      "tests/motocross-air-drag.test.ts",
+      "tests/motocross-automatic-shift.test.ts",
+      "tests/motocross-body-transport.test.ts",
+      "tests/motocross-bounded-stops.test.ts",
+      "tests/motocross-brake-budget.test.ts",
+      "tests/motocross-collision.test.ts",
+      "tests/motocross-contact-consistency.test.ts",
+      "tests/motocross-contact-time-coherence.test.ts",
+      "tests/motocross-contact-traction.test.ts",
+      "tests/motocross-contact-work-isolation.test.ts",
+      "tests/motocross-coupled-invariants.test.ts",
+      "tests/motocross-coupled-step-contract.test.ts",
+      "tests/motocross-cross-slope.test.ts",
+      "tests/motocross-drive-budget.test.ts",
+      "tests/motocross-drive-reserve.test.ts",
+      "tests/motocross-dynamic-suspension.test.ts",
+      "tests/motocross-final-contact-frame.test.ts",
+      "tests/motocross-flight-controls.ts",
+      "tests/motocross-front-steering-authority.test.ts",
+      "tests/motocross-gate-placement.test.ts",
+      "tests/motocross-ground-frame-transport.test.ts",
+      "tests/motocross-hard-stop-integration.test.ts",
+      "tests/motocross-joint-reversal.test.ts",
+      "tests/motocross-jump-corridor.test.ts",
+      "tests/motocross-jump-traffic-priority.test.ts",
+      "tests/motocross-landing-momentum.test.ts",
+      "tests/motocross-landing-observability.test.ts",
+      "tests/motocross-landing-plan.test.ts",
+      "tests/motocross-landing-prediction.test.ts",
+      "tests/motocross-live-pose-coherence.test.ts",
+      "tests/motocross-planar-transport.test.ts",
+      "tests/motocross-player-dynamics.test.ts",
+      "tests/motocross-push-gait.test.ts",
+      "tests/motocross-recovery-replay.test.ts",
+      "tests/motocross-remount-continuity.test.ts",
+      "tests/motocross-remount-handoff.test.ts",
+      "tests/motocross-rider-blending.test.ts",
+      "tests/motocross-rotor-phase-energy.test.ts",
+      "tests/motocross-slope-momentum.test.ts",
+      "tests/motocross-supported-convergence.test.ts",
+      "tests/motocross-test-track.ts",
+      "tests/motocross-wheel-motion-consistency.test.ts",
+      "tests/motocross-wheel-pickup.test.ts",
+      "tests/offroad.test.ts",
+      "tests/session-identity.test.ts"
+    ],
+    "codeModeContentManifestSha256": "d15b379a50bf402b97d13e718910c095e82cca669e440e876cd272f96b5dd4d4",
+    "excludedFromCandidate": [
+      "dist/",
+      "node_modules/",
+      "test-results/",
+      "browser caches",
+      "external temporary publication payloads"
+    ]
+  },
+  "preservation": {
+    "groups": {
+      "runtimeOutsideNine": {
+        "files": 1117,
+        "differencesFromIntegratedMain": [],
+        "modeBlobManifestSha256": "e7cc0844bb216961f762e423d94b38889b26ffbf32b0ee3fd584d950a3d178fa"
+      },
+      "authoredAssetReferenceRoots": {
+        "files": 291,
+        "differencesFromIntegratedMain": [],
+        "modeBlobManifestSha256": "ef3ddb65409e05d63fd6945362077aaec24f05781a39f6e165d440729ca41abd",
+        "differencesFromInitial": []
+      },
+      "renderingExceptWheelPose": {
+        "files": 714,
+        "differencesFromIntegratedMain": [],
+        "modeBlobManifestSha256": "9145f47d6b789216024f0186860d4d204b145e2e08e3f70d5b087d972d7fc975"
+      },
+      "courseVehicleDefinitions": {
+        "files": 11,
+        "differencesFromIntegratedMain": [],
+        "modeBlobManifestSha256": "b0e7259b42ccbc32b7998f5c109e831c742b0f294862b371f95605a1c21388a3"
+      },
+      "buildRuntimeConfigurations": {
+        "files": 9,
+        "differencesFromIntegratedMain": [],
+        "modeBlobManifestSha256": "0664246f9529a9f1d36a5df2f534e96a5ce183766c7acf2f00e3b41e18b69cd1"
+      },
+      "allTrackedOutsideTaskScope": {
+        "files": 9524,
+        "differencesFromIntegratedMain": [],
+        "modeBlobManifestSha256": "b65587893ef1c4a2d54ff73e414d6d532e1b89d83a6d0abbd29a4f73f4b2c6c4"
+      }
+    },
+    "materializedFiles": 1381,
+    "materializedModeBlobManifestSha256": "c0789d11a0ae464bbc77475c6bc4339ce6d47815a9c9f46f6e02b43fcf81bf13",
+    "sparseAbsentSkipWorktreeFiles": 36,
+    "sparsePathManifestSha256": "801a75e5eb4578bffb24f69c2e6aeb2d655c0fe1b829a4131a5fb41dbbed8cdd",
+    "extraFilesInProtectedRoots": {
+      "untracked": [],
+      "ignored": []
+    },
+    "mismatches": [],
+    "nonMx": {
+      "cases": 5,
+      "snapshots": 6005,
+      "bytesComparedByDigest": 16477720,
+      "mismatches": [],
+      "allowedNormalization": "simulation/category physics identity39to41 only",
+      "runnerSha256": "b9bb64bb3bf0c3f33aaae2c1b894b3d783f496627881595b289d45fd6f1f0417",
+      "baselineSha256": "f719ad80a6dccd33d33e7f7625d2d9f2f98c4124f9d8c079f8210b5c7044ba5c",
+      "outputSha256": "11755a559df8c73d15c5d988b63e9998482ff517ecc56c159ebe4fed5038c22f"
+    }
+  },
+  "acceptance": {
+    "allFinalUnitInputsVerified": 1556,
+    "finalUnitInputManifestSha256": "cbc2df27b4dd5fb7713ab6abc5e9b1edb123a981a7b82f9afc74ec61f6e5edb5",
+    "mxOffroad": {
+      "files": 155,
+      "tests": 1736,
+      "passed": 1736
+    },
+    "sharedCore": {
+      "files": 7,
+      "tests": 181,
+      "passed": 181
+    },
+    "fileIntersection": [],
+    "distinctTestsAcrossThoseTwoSuites": 1917,
+    "lintInputHashesVerified": 62,
+    "toolCommandExitCodes": {
+      "initial-full-production-types": 137,
+      "changed-engine-types": 0,
+      "full-production-types-after-cache-release": 0,
+      "flight-tests-types": 0,
+      "pose-tests-types": 0,
+      "contact-tests-types": 0,
+      "production-build": 0,
+      "runtime-cost": 0,
+      "shared-core-units": 0,
+      "changed-code-eslint": 0
+    },
+    "unitRawArtifactHashesVerified": [
+      {
+        "path": "test-results/agent46/final-start.json",
+        "sha256": "cc65cc3ce36fc7688abaaaac054e5463356d976578e08dd5aeba8b883d6eb714",
+        "bytes": 275661
+      },
+      {
+        "path": "test-results/agent46/final-receipt.json",
+        "sha256": "3e18c4d4d67cafd466ba7923205a8b94ff47c3d4bb52befcd44a1ccc280f0f97",
+        "bytes": 972177
+      },
+      {
+        "path": "test-results/agent46/final-vitest.json",
+        "sha256": "bf565c9cc8edc0bfea6f6c97b9e29878f5f8d98ee04ef10ef84771149ef38b30",
+        "bytes": 664592
+      },
+      {
+        "path": "test-results/agent46/final.log",
+        "sha256": "24b61fe8d453640aed2c80ef97099c9c34596078311a93e475e63383c42839e3",
+        "bytes": 47611
+      },
+      {
+        "path": "test-results/agent46/run-final.py",
+        "sha256": "0cf82502b8fe259ee390b92f181467372e47baa0c9631931d9754705656bfe91",
+        "bytes": 8274
+      }
+    ],
+    "unitManifestHashesVerified": [
+      {
+        "boundary": "manifestsBefore",
+        "kind": "all-inputs",
+        "path": "test-results/agent46/final-all-inputs-before.json",
+        "sha256": "cbc2df27b4dd5fb7713ab6abc5e9b1edb123a981a7b82f9afc74ec61f6e5edb5",
+        "entries": 1556
+      },
+      {
+        "boundary": "manifestsBefore",
+        "kind": "source",
+        "path": "test-results/agent46/final-source-before.json",
+        "sha256": "646c7c3ca71ef1db7778698031e70e0621d51831c27b0d062e27e2860c7f746d",
+        "entries": 1129
+      },
+      {
+        "boundary": "manifestsBefore",
+        "kind": "tests",
+        "path": "test-results/agent46/final-tests-before.json",
+        "sha256": "d929ca125c3c82d67e0f8e296f3f2d07dbdfda42a0daf07e6662dd346668b151",
+        "entries": 155
+      },
+      {
+        "boundary": "manifestsBefore",
+        "kind": "protected-inputs",
+        "path": "test-results/agent46/final-protected-inputs-before.json",
+        "sha256": "6dad2736051bba35092e97dcca565590e292261389279f7ea1539cad17066aee",
+        "entries": 255
+      },
+      {
+        "boundary": "manifestsBefore",
+        "kind": "dependencies",
+        "path": "test-results/agent46/final-dependencies-before.json",
+        "sha256": "abbe4b60032a0cfb74b867fed47094a6bdd4c951fef390448c27f853bd926a37",
+        "entries": 17
+      },
+      {
+        "boundary": "manifestsAfter",
+        "kind": "all-inputs",
+        "path": "test-results/agent46/final-all-inputs-after.json",
+        "sha256": "cbc2df27b4dd5fb7713ab6abc5e9b1edb123a981a7b82f9afc74ec61f6e5edb5",
+        "entries": 1556
+      },
+      {
+        "boundary": "manifestsAfter",
+        "kind": "source",
+        "path": "test-results/agent46/final-source-after.json",
+        "sha256": "646c7c3ca71ef1db7778698031e70e0621d51831c27b0d062e27e2860c7f746d",
+        "entries": 1129
+      },
+      {
+        "boundary": "manifestsAfter",
+        "kind": "tests",
+        "path": "test-results/agent46/final-tests-after.json",
+        "sha256": "d929ca125c3c82d67e0f8e296f3f2d07dbdfda42a0daf07e6662dd346668b151",
+        "entries": 155
+      },
+      {
+        "boundary": "manifestsAfter",
+        "kind": "protected-inputs",
+        "path": "test-results/agent46/final-protected-inputs-after.json",
+        "sha256": "6dad2736051bba35092e97dcca565590e292261389279f7ea1539cad17066aee",
+        "entries": 255
+      },
+      {
+        "boundary": "manifestsAfter",
+        "kind": "dependencies",
+        "path": "test-results/agent46/final-dependencies-after.json",
+        "sha256": "abbe4b60032a0cfb74b867fed47094a6bdd4c951fef390448c27f853bd926a37",
+        "entries": 17
+      }
+    ],
+    "raceScriptUnchangedFromInitialAndIntegratedBase": true,
+    "defaultMatrix": {
+      "passed": true,
+      "failures": [],
+      "cases": 11,
+      "finishers": 84,
+      "retired": 0,
+      "maximumStopSeconds": 17.59,
+      "maximumIndividualCrashes": 3,
+      "caseIdentities": [
+        {
+          "race": "Valley Ridge motocross moto",
+          "seed": 41001,
+          "weather": "clear",
+          "laps": 3,
+          "entrants": 8
+        },
+        {
+          "race": "Arena Nord supercross main",
+          "seed": 41003,
+          "weather": "clear",
+          "laps": 3,
+          "entrants": 8
+        },
+        {
+          "race": "Arena Nord enclosed race during rain",
+          "seed": 50204,
+          "weather": "rain",
+          "laps": 2,
+          "entrants": 10
+        },
+        {
+          "race": "Kestrel rallycross heat",
+          "seed": 41005,
+          "weather": "clear",
+          "laps": 4,
+          "entrants": 5
+        },
+        {
+          "race": "Pinewood special stage",
+          "seed": 41006,
+          "weather": "clear",
+          "laps": 1,
+          "entrants": 4
+        },
+        {
+          "race": "event valley-ridge-mx-moto-1",
+          "seed": 41001,
+          "weather": "clear",
+          "laps": 4,
+          "entrants": 10
+        },
+        {
+          "race": "event valley-ridge-mx-moto-2",
+          "seed": 41002,
+          "weather": "changeable",
+          "laps": 4,
+          "entrants": 10
+        },
+        {
+          "race": "event arena-nord-supercross",
+          "seed": 41003,
+          "weather": "clear",
+          "laps": 6,
+          "entrants": 10
+        },
+        {
+          "race": "event valley-ridge-supermoto",
+          "seed": 41004,
+          "weather": "clear",
+          "laps": 3,
+          "entrants": 8
+        },
+        {
+          "race": "event kestrel-rallycross-heat",
+          "seed": 41005,
+          "weather": "clear",
+          "laps": 4,
+          "entrants": 5
+        },
+        {
+          "race": "event pinewood-special-stage",
+          "seed": 41006,
+          "weather": "clear",
+          "laps": 1,
+          "entrants": 6
+        }
+      ],
+      "exitCode": 0,
+      "wallSeconds": 458.6987376270008,
+      "inputsVerified": 1387,
+      "OFFROAD_RACE": null
+    },
+    "fullGrid": {
+      "passed": true,
+      "failures": [],
+      "cases": 8,
+      "finishers": 96,
+      "retired": 0,
+      "maximumStopSeconds": 19.15,
+      "maximumIndividualCrashes": 1,
+      "caseIdentities": [
+        {
+          "race": "valley-ridge-mx clear seed 60704",
+          "seed": 60704,
+          "weather": "clear",
+          "laps": 2,
+          "entrants": 12
+        },
+        {
+          "race": "valley-ridge-mx clear seed 60705",
+          "seed": 60705,
+          "weather": "clear",
+          "laps": 2,
+          "entrants": 12
+        },
+        {
+          "race": "valley-ridge-mx rain seed 60709",
+          "seed": 60709,
+          "weather": "rain",
+          "laps": 2,
+          "entrants": 12
+        },
+        {
+          "race": "valley-ridge-mx rain seed 60710",
+          "seed": 60710,
+          "weather": "rain",
+          "laps": 2,
+          "entrants": 12
+        },
+        {
+          "race": "arena-nord-sx clear seed 60724",
+          "seed": 60724,
+          "weather": "clear",
+          "laps": 2,
+          "entrants": 12
+        },
+        {
+          "race": "arena-nord-sx clear seed 60725",
+          "seed": 60725,
+          "weather": "clear",
+          "laps": 2,
+          "entrants": 12
+        },
+        {
+          "race": "arena-nord-sx rain seed 60729",
+          "seed": 60729,
+          "weather": "rain",
+          "laps": 2,
+          "entrants": 12
+        },
+        {
+          "race": "arena-nord-sx rain seed 60730",
+          "seed": 60730,
+          "weather": "rain",
+          "laps": 2,
+          "entrants": 12
+        }
+      ]
+    },
+    "valleyEvent": {
+      "passed": true,
+      "failures": [],
+      "cases": 1,
+      "finishers": 10,
+      "retired": 0,
+      "maximumStopSeconds": 13.26,
+      "maximumIndividualCrashes": 1,
+      "caseIdentities": [
+        {
+          "race": "event valley-ridge-mx-moto-1",
+          "seed": 41001,
+          "weather": "clear",
+          "laps": 4,
+          "entrants": 10
+        }
+      ]
+    },
+    "targetedSuiteCountsNotAddedAgain": true
+  },
+  "receipts": {
+    "46-final-engine-units.json": "0957ba06da386e0033757f8b3dd2beaa84906266dfa5719fd0136a43240f37f3",
+    "52-tooling-runtime-cost.json": "e64d4174e6b28d53503b5454745c8a296b73a15ba576426681ac77fc048e4700",
+    "49-wet-race-regression.json": "5549d5caa1829c4c03853847b5f666048d380d3db3df8d411e2c358c097f55cd",
+    "49-motocross-full-grid.json": "faa823d8fa0a2605bd399e89ed5d3a195e15b2cce71b768343226e25ea21180a",
+    "49-valley-event.json": "f3e81b85a892a945d91d12203e43f6434e9260a70a54f740d20633676252041f",
+    "final-default-offroad-receipt.json": "0a4b0256b0927c0b44dcac0ae6b3395df9d62fe6618444c1b017e1f433ff734c",
+    "final-default-offroad-races.json": "779d4ca294a1f58b469a7dab335497c54cc0d742b47daea6d24cb5347e43c370",
+    "final-default-offroad-races.log": "cfeb1f461dfc77913be9c180002f72a47bf0d468ca98b4b443f758a73e2c05be",
+    "final-preservation.json": "74e46837e5ca9aeedef50cb452bb3f54fcb18812d9f6274f6db14a9f047c2491",
+    "final-non-mx-snapshots.json": "11755a559df8c73d15c5d988b63e9998482ff517ecc56c159ebe4fed5038c22f",
+    "55-source-review.json": "9dae09f3746a7e50306db1881ff355c18c606508d6cbfca30699893448375339",
+    "56-claims-oracle-review.json": "086957687a3d81e81496b3531ba0ad5b947ad97e35bff8f79a499cb22009a4e4"
+  },
+  "publicationPreparation": {
+    "helperSha256": "9133632a9ca31dd0f6a41ec025eb22ea9834864065a48e3acf7d73f225d6ba4a",
+    "manifestSha256AtReview": "db859011ebd0e376cc974e02a9633cdc2d1a34fedb193ee5b29cf414d84fa1d7",
+    "manifestFilesAtReview": 184,
+    "manifestPayloadContentsAndTreesVerified": true,
+    "staleDocumentationPathsAtReview": [],
+    "codePayloadCurrent": true,
+    "gitHeadAndIndexUnmodifiedByPreflight": true,
+    "userAlreadyExplicitlyAuthorizedCommitAndPushToMain": true,
+    "freshUserConfirmationRequired": false
+  },
+  "claimReview": {
+    "readmeAndIntegrationStateBrowserGpuNotSuccessfullyExecuted": true,
+    "readmeAndIntegrationStateHostedCiUnprovenForNewSource": true,
+    "historicalA153UnitAndRaceFailuresRetainedAsHistory": true,
+    "buildAndCpuTestsDoNotImplyVisualAcceptance": true,
+    "trackedDefaultMatrixLegacyGeneratedLabelIsNotActualShellCommand": true,
+    "receiptCommandRecordsActualDirectNodeInvocation": true,
+    "reducedModelLimitsRemainDocumented": true
+  },
+  "pendingPublicationConditions": [
+    "Finish final documentation/status reconciliation, including this report and the actual agent-60 spawn; regenerate and verify 57 publication payloads after those edits. Snapshot file counts/tree hashes here intentionally precede this report.",
+    "Root must freshly read remote main immediately before publication; the last independent observation was c9c94c7 at approximately 00:08 UTC, not a publication lease for later use.",
+    "If remote main moved, preserve and reconcile all concurrent changes on the new base, rebuild affected trees/payloads, and revalidate acceptance if engine inputs changed.",
+    "Root must compare the final GitHub API tree to the exact final local git write-tree result before moving main, and update the ref with that fresh expected_sha and force false.",
+    "Agent 60 must verify actual published commits, final remote tree/source and protected scope, and report observed hosted checks without treating local gate success as complete hosted-CI success."
+  ],
+  "actionsNotPerformed": [
+    "No Git mutation",
+    "No source or test edit",
+    "No asset/model/character/environment edit",
+    "No broad test rerun",
+    "No browser attempt",
+    "No remote object or ref write"
+  ]
+}

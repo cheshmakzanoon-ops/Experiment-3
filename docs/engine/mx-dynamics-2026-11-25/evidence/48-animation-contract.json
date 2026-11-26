@@ -1,0 +1,1238 @@
+{
+  "assignment": 48,
+  "wave": 8,
+  "completedUtc": "2026-11-25T23:50:08.549082+00:00",
+  "scope": "Test-only complete-riding animation fixture and preserved held-input adverse regression; no production or authored content edits.",
+  "sourceIdentity": {
+    "initialReadOnlyDiagnosis": "a153c34d852b156d5638b2175766e5f22135aa9045af2796cd2e7d9afdd5f9d0",
+    "duringTargetedRun": "4c041cb338d0fa480e0514ee905137a24061494b98b9899949238f6b137be790",
+    "afterTargetedRun": "4c041cb338d0fa480e0514ee905137a24061494b98b9899949238f6b137be790",
+    "timingNote": "Full source identity was recorded during and after the targeted run; assignment49 concurrently owned a scoped AI repair. Adapter and ground files remained at the stated freeze throughout this assignment.",
+    "adapter": "7a72b2747d4469bc652ce965afab4a8f94a7b1606073291c6d36045182b9361e",
+    "ground": "68b04234548a2b037f4769d38343c26ec712a61fd9261fd6dac44641c81ca4e3",
+    "testFiles": {
+      "tests/motocross-live-pose-coherence.test.ts": "d055e3ceb79441291f953a3b6abf0cd662e45e07c8699863092836bcb440f08b",
+      "tests/motocross-dynamic-suspension.test.ts": "e09d17ecc241508d90b3fd65bca723c8d5f02e021350e28c451d910b4ee5ae50",
+      "tests/motocross-joint-reversal.test.ts": "af98eae832652a9e925375ce3d72b3b52b307388ff16b3832a6fef9c545aa4b3",
+      "tests/motocross-flight-controls.ts": "9e829de8b0e034103f1a1867608498848caeb8eccfd9696d7296e6d92270cda1"
+    }
+  },
+  "originalFailure": {
+    "affectedFiles": [
+      "tests/motocross-live-pose-coherence.test.ts",
+      "tests/motocross-dynamic-suspension.test.ts",
+      "tests/motocross-joint-reversal.test.ts"
+    ],
+    "machine": "mx450",
+    "venue": "valley-ridge-mx",
+    "feature": "RIDGE TABLE",
+    "firstCrashTime120Hz": 2.849999999999991,
+    "takeoffControls": {
+      "throttle": 0.4437776934950975,
+      "brake": 0,
+      "clutch": 0,
+      "rearBrake": 0,
+      "manualClutch": false,
+      "steer": -0.000500555611516802,
+      "riderLean": 0,
+      "shift": 0,
+      "ers": 1,
+      "pit": false,
+      "reverse": false
+    },
+    "originalBottomSpeed120Hz": 7.1008616660409425,
+    "threshold": 7
+  },
+  "causalIsolations": [
+    {
+      "mode": "held",
+      "maxBrake": 0,
+      "maxSteer": 0.000500555611516802,
+      "crashes": 1,
+      "bottomSpeed": 7.1008616660409425,
+      "outcome": "crash-flat"
+    },
+    {
+      "mode": "release-brake",
+      "maxBrake": 0,
+      "maxSteer": 0.000500555611516802,
+      "crashes": 1,
+      "bottomSpeed": 7.1008616660409425,
+      "outcome": "crash-flat"
+    },
+    {
+      "mode": "release-steer",
+      "maxBrake": 0,
+      "maxSteer": 0,
+      "crashes": 1,
+      "bottomSpeed": 7.100859361858133,
+      "outcome": "crash-flat"
+    },
+    {
+      "mode": "release-both",
+      "maxBrake": 0,
+      "maxSteer": 0,
+      "crashes": 1,
+      "bottomSpeed": 7.100859361858133,
+      "outcome": "crash-flat"
+    }
+  ],
+  "controlPolicy": {
+    "reference": "scripts/bench/motocross-player-dynamics.ts airControls feedback policy",
+    "helper": "tests/motocross-flight-controls.ts",
+    "changes": "Only airborne jump throttle/rear-brake/steering/front-brake inputs; all approach speeds, gears, terrain and physical constants retained. Whoops traces unchanged.",
+    "coastDiagnosticSurvived": true
+  },
+  "assertionPreservation": {
+    "existingTestCount": 52,
+    "retainedExistingTests": 52,
+    "addedTests": 1,
+    "removedLinesFromOwnedExistingTestsVersusHead": [],
+    "note": "Only import/control-branch additions plus the new adverse regression; no original assertion or numeric bound removed or changed."
+  },
+  "validation": {
+    "command": "MX_POSE_REPORT=1 node --max-old-space-size=1024 node_modules/vitest/vitest.mjs run tests/motocross-live-pose-coherence.test.ts tests/motocross-dynamic-suspension.test.ts tests/motocross-joint-reversal.test.ts --maxWorkers=1",
+    "tests": 53,
+    "passed": 53,
+    "failed": 0,
+    "files": [
+      {
+        "path": "tests/motocross-dynamic-suspension.test.ts",
+        "status": "passed",
+        "tests": 14
+      },
+      {
+        "path": "tests/motocross-joint-reversal.test.ts",
+        "status": "passed",
+        "tests": 30
+      },
+      {
+        "path": "tests/motocross-live-pose-coherence.test.ts",
+        "status": "passed",
+        "tests": 9
+      }
+    ],
+    "wallSeconds": 23.17,
+    "testSeconds": 18.1,
+    "eslintExitCode": 0,
+    "whitespaceExitCode": 0,
+    "strictTypes": {
+      "exitCode": 137,
+      "heapCapMb": 1024,
+      "diagnosticsProduced": false,
+      "result": "Process killed during concurrent dependency-graph type check; no success claimed. Deferred to serialized final tooling assignment52 by root."
+    }
+  },
+  "presentationSummary": {
+    "cpuRigCalls": 12256,
+    "maximumRigErrorMetres": 1.6191133054998477e-08,
+    "maximumNativeEndpointErrorMetres": 4.259756192661441e-06,
+    "publication30MeanRangeMetres": [
+      0.0006164738516138233,
+      0.0007409486065792135
+    ],
+    "publication60MeanRangeMetres": [
+      0.00012424568264239477,
+      0.00016016501248568489
+    ],
+    "maximumInterior30Metres": 0.04085293595767806,
+    "maximumInterior60Metres": 0.018910510447638817,
+    "graphicsBackendExecuted": false
+  },
+  "heldInputAdverse": [
+    {
+      "continuationHz": 120,
+      "landing": {
+        "time": 2.7981104118545694,
+        "s": 212.8678911485024,
+        "distance": 20.146026706783644,
+        "takeoffSpeed": 14.625946340872094,
+        "airTime": 1.5953326340767968,
+        "pitchError": 0.20447563466200236,
+        "slope": 0.015366387761956098,
+        "normalSpeed": 8.955622052001718,
+        "yawError": -2.9644912251593662e-05,
+        "lateralSpeed": -0.00036400407037226484,
+        "bottomSpeed": 7.1008616660409425,
+        "outcome": "crash-flat"
+      },
+      "bottomLimit": 7,
+      "riding": false,
+      "crashes": 1
+    },
+    {
+      "continuationHz": 240,
+      "landing": {
+        "time": 2.7980775526768755,
+        "s": 212.86748512752752,
+        "distance": 20.145620685801973,
+        "takeoffSpeed": 14.625946340872094,
+        "airTime": 1.5952997748990605,
+        "pitchError": 0.20489272179888174,
+        "slope": 0.015361659010093738,
+        "normalSpeed": 8.955242250327705,
+        "yawError": -3.076574115574036e-05,
+        "lateralSpeed": -0.00035015444537749935,
+        "bottomSpeed": 7.077238253002285,
+        "outcome": "crash-flat"
+      },
+      "bottomLimit": 7,
+      "riding": false,
+      "crashes": 1
+    },
+    {
+      "continuationHz": 480,
+      "landing": {
+        "time": 2.798061844938361,
+        "s": 212.86729103631023,
+        "distance": 20.14542659458147,
+        "takeoffSpeed": 14.625946340872094,
+        "airTime": 1.5952840671606467,
+        "pitchError": 0.205087524795565,
+        "slope": 0.015359394569484578,
+        "normalSpeed": 8.955060644630386,
+        "yawError": -3.13290655286077e-05,
+        "lateralSpeed": -0.0003431936753454685,
+        "bottomSpeed": 7.076879702890095,
+        "outcome": "crash-flat"
+      },
+      "bottomLimit": 7,
+      "riding": false,
+      "crashes": 1
+    },
+    {
+      "continuationHz": 960,
+      "landing": {
+        "time": 2.7980541597350217,
+        "s": 212.86719607475993,
+        "distance": 20.145331633029567,
+        "takeoffSpeed": 14.625946340872094,
+        "airTime": 1.5952763819573006,
+        "pitchError": 0.20512122448723644,
+        "slope": 0.015358285732743877,
+        "normalSpeed": 8.95497178040816,
+        "yawError": -3.163240159881537e-05,
+        "lateralSpeed": -0.000339445480633402,
+        "bottomSpeed": 7.056597584929032,
+        "outcome": "crash-flat"
+      },
+      "bottomLimit": 7,
+      "riding": false,
+      "crashes": 1
+    },
+    {
+      "continuationHz": 1920,
+      "landing": {
+        "time": 2.7980502222233508,
+        "s": 212.86714742124673,
+        "distance": 20.145282979515557,
+        "takeoffSpeed": 14.625946340872094,
+        "airTime": 1.595272444445577,
+        "pitchError": 0.20514462854944446,
+        "slope": 0.015357717385006886,
+        "normalSpeed": 8.954926247964343,
+        "yawError": -3.177717516719816e-05,
+        "lateralSpeed": -0.0003376565718896747,
+        "bottomSpeed": 7.062938777596705,
+        "outcome": "crash-flat"
+      },
+      "bottomLimit": 7,
+      "riding": false,
+      "crashes": 1
+    },
+    {
+      "continuationHz": 3840,
+      "landing": {
+        "time": 2.7980483200663695,
+        "s": 212.86712391737774,
+        "distance": 20.145259475646117,
+        "takeoffSpeed": 14.625946340872094,
+        "airTime": 1.5952705422879156,
+        "pitchError": 0.2051679510593104,
+        "slope": 0.015357442767265408,
+        "normalSpeed": 8.95490425117238,
+        "yawError": -3.1834484071368046e-05,
+        "lateralSpeed": -0.00033694842509408916,
+        "bottomSpeed": 7.063701270578562,
+        "outcome": "crash-flat"
+      },
+      "bottomLimit": 7,
+      "riding": false,
+      "crashes": 1
+    }
+  ],
+  "poseCases": [
+    {
+      "vehicle": "mx250",
+      "circuit": "valley-ridge-mx",
+      "feature": "jump",
+      "maximumRigError": 1.4363104706671393e-08,
+      "calls": 1532,
+      "nativeError": 4.259756192661441e-06,
+      "recovered": 48,
+      "recoveredError": 0.032383144649861265,
+      "envelopeError": 0.08974146260770799,
+      "bodyPitch": 0.030430929095027766,
+      "incomingDifference": 0.06355349196005422,
+      "filteredRigDifference": 0.11731862332747342,
+      "supportPlaneDifference": 0.2998716862220692,
+      "terrainDifference": 0.34295673769837354,
+      "supportSamples": 765,
+      "airborne": 235,
+      "oneAxle": 179,
+      "takeoffs": 2,
+      "landings": 2,
+      "maximumPitch": 0.5994301841450037,
+      "maximumLean": 0.007480626081135575,
+      "maximumSteer": 0.004534690522103431,
+      "worstSupport": {
+        "tick": 132,
+        "axle": "rear",
+        "pitch": 0.5994301841450037,
+        "bodyPitch": 0.005274208269144634,
+        "lean": 0.00010196361834572086,
+        "steer": -2.4776683624333067e-06,
+        "stroke": 0.1609462702547324,
+        "load": 5193.264538277341,
+        "normal": [
+          0.47620368199067836,
+          0.8793205120427301,
+          0.005048797820474762
+        ],
+        "forcePoint": [
+          61.90062682537194,
+          2.540259568128932,
+          -53.99818567072726
+        ],
+        "hub": [
+          61.541234850706815,
+          2.787023306124384,
+          -53.998308600571185
+        ],
+        "patch": [
+          61.37694267534466,
+          2.483654767703486,
+          -53.998715002307144
+        ],
+        "terrainHeight": 2.8266115054018597,
+        "signedTerrainGap": -0.34295673769837354,
+        "geometryNormalGap": -0.2954894219794671,
+        "postureAndCrownNormalGap": -0.0036673330459884483
+      },
+      "commonDifference": 0.039080843667713486,
+      "accuracy": [
+        {
+          "publication": 30,
+          "mean": 0.000669090139054108,
+          "maximum": 0.03908118340285091,
+          "worst": {
+            "tick": 342,
+            "axle": "front",
+            "alpha": 0.5,
+            "airborne": [
+              0,
+              0
+            ],
+            "frontLoaded": [
+              true,
+              true
+            ],
+            "rearLoaded": [
+              true,
+              true
+            ],
+            "bottom": [
+              0,
+              0.9292957186698914
+            ],
+            "landingSpeed": [
+              8.801047325134277,
+              8.801047325134277
+            ]
+          }
+        },
+        {
+          "publication": 60,
+          "mean": 0.00012424568264239477,
+          "maximum": 0.008219888021122274,
+          "worst": {
+            "tick": 335,
+            "axle": "rear",
+            "alpha": 0.5,
+            "airborne": [
+              1,
+              0
+            ],
+            "frontLoaded": [
+              false,
+              false
+            ],
+            "rearLoaded": [
+              false,
+              true
+            ],
+            "bottom": [
+              0,
+              0
+            ],
+            "landingSpeed": [
+              0,
+              8.801047325134277
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "vehicle": "mx250",
+      "circuit": "valley-ridge-mx",
+      "feature": "whoops",
+      "maximumRigError": 8.318740226833042e-09,
+      "calls": 1532,
+      "nativeError": 4.199888147579141e-06,
+      "recovered": 72,
+      "recoveredError": 0.028063532107204442,
+      "envelopeError": 0.12502619595212927,
+      "bodyPitch": 0.05244573271176683,
+      "incomingDifference": 0.0171638595744108,
+      "filteredRigDifference": 0.04022783131519703,
+      "supportPlaneDifference": 0.040528219082055804,
+      "terrainDifference": 0.04305370249027529,
+      "supportSamples": 903,
+      "airborne": 139,
+      "oneAxle": 215,
+      "takeoffs": 11,
+      "landings": 11,
+      "maximumPitch": 0.15594498339642998,
+      "maximumLean": 0.17434495374406925,
+      "maximumSteer": 0.14166666666666666,
+      "worstSupport": {
+        "tick": 542,
+        "axle": "front",
+        "pitch": -0.09477030782630377,
+        "bodyPitch": -0.0499429172507962,
+        "lean": 0.020184212438529924,
+        "steer": 0,
+        "stroke": 0.010955666722677115,
+        "load": 2186.9474440310228,
+        "normal": [
+          0.019984740433031153,
+          0.9996441861247403,
+          -0.017666671922865772
+        ],
+        "forcePoint": [
+          26.884777301365332,
+          6.808185880685062,
+          89.0322676479636
+        ],
+        "hub": [
+          26.939246302945545,
+          7.122468092803754,
+          89.02404122157616
+        ],
+        "patch": [
+          26.933050808082548,
+          6.7676098755098355,
+          89.01789045973479
+        ],
+        "terrainHeight": 6.810663578000111,
+        "signedTerrainGap": -0.04305370249027529,
+        "geometryNormalGap": -0.004742500150936666,
+        "postureAndCrownNormalGap": -0.03460033694949822
+      },
+      "commonDifference": 0.010321234433596487,
+      "accuracy": [
+        {
+          "publication": 30,
+          "mean": 0.0006164738516138233,
+          "maximum": 0.010320982963226942,
+          "worst": {
+            "tick": 618,
+            "axle": "front",
+            "alpha": 0.5,
+            "airborne": [
+              1,
+              0
+            ],
+            "frontLoaded": [
+              false,
+              true
+            ],
+            "rearLoaded": [
+              false,
+              false
+            ],
+            "bottom": [
+              0,
+              0
+            ],
+            "landingSpeed": [
+              1.591349482536316,
+              1.594427227973938
+            ]
+          }
+        },
+        {
+          "publication": 60,
+          "mean": 0.00012969483159912932,
+          "maximum": 0.004700727553774159,
+          "worst": {
+            "tick": 467,
+            "axle": "front",
+            "alpha": 0.5,
+            "airborne": [
+              1,
+              0
+            ],
+            "frontLoaded": [
+              false,
+              true
+            ],
+            "rearLoaded": [
+              false,
+              false
+            ],
+            "bottom": [
+              0,
+              0
+            ],
+            "landingSpeed": [
+              1.4187631607055664,
+              1.5878384113311768
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "vehicle": "mx250",
+      "circuit": "arena-nord-sx",
+      "feature": "jump",
+      "maximumRigError": 1.6191133054998477e-08,
+      "calls": 1532,
+      "nativeError": 2.059295537070044e-06,
+      "recovered": 19,
+      "recoveredError": 0.004956294633629232,
+      "envelopeError": 0.025648726624508025,
+      "bodyPitch": 0.05827004064839056,
+      "incomingDifference": 0.06313614377056131,
+      "filteredRigDifference": 0.11236049508813116,
+      "supportPlaneDifference": 0.30190043880115236,
+      "terrainDifference": 0.34723346357049256,
+      "supportSamples": 624,
+      "airborne": 331,
+      "oneAxle": 119,
+      "takeoffs": 6,
+      "landings": 6,
+      "maximumPitch": 0.6024525487545723,
+      "maximumLean": 0.19529963355013685,
+      "maximumSteer": 0.02954234530128877,
+      "worstSupport": {
+        "tick": 133,
+        "axle": "rear",
+        "pitch": 0.6016879007125185,
+        "bodyPitch": 0.005224834250040573,
+        "lean": -0.05608956669743743,
+        "steer": -0.004948637970380761,
+        "stroke": 0.16988234825798743,
+        "load": 5831.992133681177,
+        "normal": [
+          0.4757180420032994,
+          0.8795868363541375,
+          -0.004397934181770789
+        ],
+        "forcePoint": [
+          47.206944988189825,
+          0.9599284889311221,
+          21.590769859524595
+        ],
+        "hub": [
+          46.85253293365136,
+          1.2031155229560524,
+          21.621145399814804
+        ],
+        "patch": [
+          46.68900340997871,
+          0.9000406604129478,
+          21.639955884760237
+        ],
+        "terrainHeight": 1.2472741239834404,
+        "signedTerrainGap": -0.34723346357049256,
+        "geometryNormalGap": -0.29574748939012796,
+        "postureAndCrownNormalGap": -0.0035395265926317244
+      },
+      "commonDifference": 0.03152220128886136,
+      "accuracy": [
+        {
+          "publication": 30,
+          "mean": 0.000627370655047557,
+          "maximum": 0.0358635805599695,
+          "worst": {
+            "tick": 337,
+            "axle": "front",
+            "alpha": 0.25,
+            "airborne": [
+              0,
+              0
+            ],
+            "frontLoaded": [
+              false,
+              true
+            ],
+            "rearLoaded": [
+              true,
+              true
+            ],
+            "bottom": [
+              0,
+              0
+            ],
+            "landingSpeed": [
+              8.805477142333984,
+              8.805477142333984
+            ]
+          }
+        },
+        {
+          "publication": 60,
+          "mean": 0.00015372556568000624,
+          "maximum": 0.017405519416352478,
+          "worst": {
+            "tick": 337,
+            "axle": "front",
+            "alpha": 0.5,
+            "airborne": [
+              0,
+              0
+            ],
+            "frontLoaded": [
+              false,
+              true
+            ],
+            "rearLoaded": [
+              true,
+              true
+            ],
+            "bottom": [
+              0,
+              0
+            ],
+            "landingSpeed": [
+              8.805477142333984,
+              8.805477142333984
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "vehicle": "mx250",
+      "circuit": "arena-nord-sx",
+      "feature": "whoops",
+      "maximumRigError": 8.356713716800112e-09,
+      "calls": 1532,
+      "nativeError": 1.0392145156843941e-06,
+      "recovered": 26,
+      "recoveredError": 0.0037342588271530863,
+      "envelopeError": 0.017091542125749842,
+      "bodyPitch": 0.04590172461832191,
+      "incomingDifference": 0.017964679692601127,
+      "filteredRigDifference": 0.03659067308192367,
+      "supportPlaneDifference": 0.033794744663802896,
+      "terrainDifference": 0.033939171903908126,
+      "supportSamples": 831,
+      "airborne": 143,
+      "oneAxle": 293,
+      "takeoffs": 8,
+      "landings": 8,
+      "maximumPitch": 0.15248192078449058,
+      "maximumLean": 0.2784160752383545,
+      "maximumSteer": 0.18396571526935832,
+      "worstSupport": {
+        "tick": 235,
+        "axle": "front",
+        "pitch": -0.08060474557852994,
+        "bodyPitch": -0.0449552025701189,
+        "lean": 0.0022051011641793525,
+        "steer": 0,
+        "stroke": 0.015292996067665418,
+        "load": 2391.507121188042,
+        "normal": [
+          -0.0951492655055568,
+          0.9954606645113733,
+          0.002163951091950287
+        ],
+        "forcePoint": [
+          -15.330993445386355,
+          0.08953306707001017,
+          7.677715572955419
+        ],
+        "hub": [
+          -15.37336769252529,
+          0.408142441198722,
+          7.68208678843276
+        ],
+        "patch": [
+          -15.339640395538334,
+          0.05475141846282234,
+          7.680611856382866
+        ],
+        "terrainHeight": 0.08869059036673047,
+        "signedTerrainGap": -0.033939171903908126,
+        "geometryNormalGap": -0.004211590470734665,
+        "postureAndCrownNormalGap": -0.029583154193068232
+      },
+      "commonDifference": 0.01072942337691116,
+      "accuracy": [
+        {
+          "publication": 30,
+          "mean": 0.0006951950733992104,
+          "maximum": 0.010729384823308293,
+          "worst": {
+            "tick": 486,
+            "axle": "front",
+            "alpha": 0.5,
+            "airborne": [
+              1,
+              0
+            ],
+            "frontLoaded": [
+              false,
+              true
+            ],
+            "rearLoaded": [
+              false,
+              false
+            ],
+            "bottom": [
+              0,
+              0
+            ],
+            "landingSpeed": [
+              1.729087471961975,
+              1.7383345365524292
+            ]
+          }
+        },
+        {
+          "publication": 60,
+          "mean": 0.00012827896221991443,
+          "maximum": 0.004505125994663706,
+          "worst": {
+            "tick": 487,
+            "axle": "front",
+            "alpha": 0.5,
+            "airborne": [
+              1,
+              0
+            ],
+            "frontLoaded": [
+              false,
+              true
+            ],
+            "rearLoaded": [
+              false,
+              false
+            ],
+            "bottom": [
+              0,
+              0
+            ],
+            "landingSpeed": [
+              1.729087471961975,
+              1.7383345365524292
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "vehicle": "mx450",
+      "circuit": "valley-ridge-mx",
+      "feature": "jump",
+      "maximumRigError": 1.3584910201661722e-08,
+      "calls": 1532,
+      "nativeError": 3.762241853671411e-06,
+      "recovered": 51,
+      "recoveredError": 0.03279390775268046,
+      "envelopeError": 0.09574717872134908,
+      "bodyPitch": 0.03648437878667748,
+      "incomingDifference": 0.0641715892939394,
+      "filteredRigDifference": 0.11719708073681193,
+      "supportPlaneDifference": 0.3059877441534965,
+      "terrainDifference": 0.349520865018107,
+      "supportSamples": 744,
+      "airborne": 243,
+      "oneAxle": 182,
+      "takeoffs": 2,
+      "landings": 2,
+      "maximumPitch": 0.6048168835319979,
+      "maximumLean": 0.007871926467998752,
+      "maximumSteer": 0.004775783759468677,
+      "worstSupport": {
+        "tick": 132,
+        "axle": "rear",
+        "pitch": 0.6048168835319979,
+        "bodyPitch": 0.005247008911164709,
+        "lean": 4.8604366490767676e-05,
+        "steer": -3.883743541439339e-05,
+        "stroke": 0.16471765657370652,
+        "load": 5547.618929152986,
+        "normal": [
+          0.47757612070026745,
+          0.8785758397867616,
+          0.005053976639307728
+        ],
+        "forcePoint": [
+          61.84168286668762,
+          2.5724900906607653,
+          -53.998211950290234
+        ],
+        "hub": [
+          61.47630216445322,
+          2.8159673292569964,
+          -53.99831891650499
+        ],
+        "patch": [
+          61.31153647345481,
+          2.512855705406591,
+          -53.99871245134524
+        ],
+        "terrainHeight": 2.862376570424698,
+        "signedTerrainGap": -0.349520865018107,
+        "geometryNormalGap": -0.3019366580254298,
+        "postureAndCrownNormalGap": -0.003644459483428447
+      },
+      "commonDifference": 0.04019504756327792,
+      "accuracy": [
+        {
+          "publication": 30,
+          "mean": 0.0007409486065792135,
+          "maximum": 0.04019513095660676,
+          "worst": {
+            "tick": 342,
+            "axle": "rear",
+            "alpha": 0.5,
+            "airborne": [
+              0,
+              0
+            ],
+            "frontLoaded": [
+              true,
+              true
+            ],
+            "rearLoaded": [
+              true,
+              true
+            ],
+            "bottom": [
+              0,
+              0.9365242719650269
+            ],
+            "landingSpeed": [
+              8.995923042297363,
+              8.995923042297363
+            ]
+          }
+        },
+        {
+          "publication": 60,
+          "mean": 0.0001466184143002034,
+          "maximum": 0.016083633184107805,
+          "worst": {
+            "tick": 341,
+            "axle": "rear",
+            "alpha": 0.5,
+            "airborne": [
+              0,
+              0
+            ],
+            "frontLoaded": [
+              true,
+              true
+            ],
+            "rearLoaded": [
+              true,
+              true
+            ],
+            "bottom": [
+              0,
+              0.9365242719650269
+            ],
+            "landingSpeed": [
+              8.995923042297363,
+              8.995923042297363
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "vehicle": "mx450",
+      "circuit": "valley-ridge-mx",
+      "feature": "whoops",
+      "maximumRigError": 8.06633596633446e-09,
+      "calls": 1532,
+      "nativeError": 4.1569474332182435e-06,
+      "recovered": 30,
+      "recoveredError": 0.009991165880075148,
+      "envelopeError": 0.040110484141612446,
+      "bodyPitch": 0.05700536480754744,
+      "incomingDifference": 0.017003389032294258,
+      "filteredRigDifference": 0.052879190089135296,
+      "supportPlaneDifference": 0.04413526989693037,
+      "terrainDifference": 0.04433049798258004,
+      "supportSamples": 837,
+      "airborne": 180,
+      "oneAxle": 203,
+      "takeoffs": 10,
+      "landings": 10,
+      "maximumPitch": 0.1574691545943669,
+      "maximumLean": 0.11894678635685653,
+      "maximumSteer": 0.10935218029733833,
+      "worstSupport": {
+        "tick": 470,
+        "axle": "front",
+        "pitch": -0.033093187417470346,
+        "bodyPitch": -0.05700536480754744,
+        "lean": 0.00790376440285406,
+        "steer": 0,
+        "stroke": 0.006703815798284829,
+        "load": 2681.3443762402817,
+        "normal": [
+          0.10731695683241495,
+          0.994223705900792,
+          -0.0015143979414331847
+        ],
+        "forcePoint": [
+          31.27269729256581,
+          6.8679751224263885,
+          89.47169627974836
+        ],
+        "hub": [
+          31.29023025656645,
+          7.178711463913202,
+          89.46762712963952
+        ],
+        "patch": [
+          31.252358586758483,
+          6.825766318727019,
+          89.46350071139177
+        ],
+        "terrainHeight": 6.870096816709599,
+        "signedTerrainGap": -0.04433049798258004,
+        "geometryNormalGap": -0.0054684382401573,
+        "postureAndCrownNormalGap": -0.03866683165677306
+      },
+      "commonDifference": 0.012289125523990614,
+      "accuracy": [
+        {
+          "publication": 30,
+          "mean": 0.0006490696884212384,
+          "maximum": 0.01360660515728447,
+          "worst": {
+            "tick": 393,
+            "axle": "front",
+            "alpha": 0.25,
+            "airborne": [
+              0,
+              0
+            ],
+            "frontLoaded": [
+              true,
+              true
+            ],
+            "rearLoaded": [
+              false,
+              false
+            ],
+            "bottom": [
+              0,
+              0
+            ],
+            "landingSpeed": [
+              2.1417555809020996,
+              2.1417555809020996
+            ]
+          }
+        },
+        {
+          "publication": 60,
+          "mean": 0.00013796453881366352,
+          "maximum": 0.006063564310745475,
+          "worst": {
+            "tick": 393,
+            "axle": "front",
+            "alpha": 0.5,
+            "airborne": [
+              0,
+              0
+            ],
+            "frontLoaded": [
+              true,
+              true
+            ],
+            "rearLoaded": [
+              false,
+              false
+            ],
+            "bottom": [
+              0,
+              0
+            ],
+            "landingSpeed": [
+              2.1417555809020996,
+              2.1417555809020996
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "vehicle": "mx450",
+      "circuit": "arena-nord-sx",
+      "feature": "jump",
+      "maximumRigError": 1.553979026550001e-08,
+      "calls": 1532,
+      "nativeError": 2.115737276015826e-06,
+      "recovered": 24,
+      "recoveredError": 0.008497182016276736,
+      "envelopeError": 0.03665808237671356,
+      "bodyPitch": 0.05829332231525379,
+      "incomingDifference": 0.06380048880620359,
+      "filteredRigDifference": 0.1139617498001177,
+      "supportPlaneDifference": 0.30938887210188754,
+      "terrainDifference": 0.3550173502952769,
+      "supportSamples": 608,
+      "airborne": 336,
+      "oneAxle": 121,
+      "takeoffs": 6,
+      "landings": 6,
+      "maximumPitch": 0.6095175899018941,
+      "maximumLean": 0.19077653606912415,
+      "maximumSteer": 0.028333333333333332,
+      "worstSupport": {
+        "tick": 134,
+        "axle": "rear",
+        "pitch": 0.6095175899018941,
+        "bodyPitch": 0.0052206234734565584,
+        "lean": -0.05643621660672711,
+        "steer": -0.005581746495175882,
+        "stroke": 0.17940900852629327,
+        "load": 5115.667771424829,
+        "normal": [
+          0.4814892764062681,
+          0.8764410265294201,
+          -0.004382205132647007
+        ],
+        "forcePoint": [
+          47.050320057236675,
+          1.0467697764736796,
+          21.595303985947226
+        ],
+        "hub": [
+          46.691900301816624,
+          1.284406681469834,
+          21.625958484179733
+        ],
+        "patch": [
+          46.526393194096215,
+          0.9824178386222064,
+          21.64490596709462
+        ],
+        "terrainHeight": 1.3374351889174834,
+        "signedTerrainGap": -0.3550173502952769,
+        "geometryNormalGap": -0.30533449603645363,
+        "postureAndCrownNormalGap": -0.003548714712928398
+      },
+      "commonDifference": 0.04085315533287213,
+      "accuracy": [
+        {
+          "publication": 30,
+          "mean": 0.0007362420637623593,
+          "maximum": 0.04085293595767806,
+          "worst": {
+            "tick": 338,
+            "axle": "front",
+            "alpha": 0.5,
+            "airborne": [
+              1,
+              0
+            ],
+            "frontLoaded": [
+              false,
+              true
+            ],
+            "rearLoaded": [
+              false,
+              true
+            ],
+            "bottom": [
+              0,
+              0
+            ],
+            "landingSpeed": [
+              0,
+              8.855578422546387
+            ]
+          }
+        },
+        {
+          "publication": 60,
+          "mean": 0.00016016501248568489,
+          "maximum": 0.018910510447638817,
+          "worst": {
+            "tick": 337,
+            "axle": "rear",
+            "alpha": 0.5,
+            "airborne": [
+              1,
+              0
+            ],
+            "frontLoaded": [
+              false,
+              false
+            ],
+            "rearLoaded": [
+              false,
+              true
+            ],
+            "bottom": [
+              0,
+              0
+            ],
+            "landingSpeed": [
+              0,
+              8.855578422546387
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "vehicle": "mx450",
+      "circuit": "arena-nord-sx",
+      "feature": "whoops",
+      "maximumRigError": 8.356714312287273e-09,
+      "calls": 1532,
+      "nativeError": 9.88718607321308e-07,
+      "recovered": 20,
+      "recoveredError": 0.002416066385482016,
+      "envelopeError": 0.013156361337637035,
+      "bodyPitch": 0.04895420036779089,
+      "incomingDifference": 0.018130098616197257,
+      "filteredRigDifference": 0.041272214052432275,
+      "supportPlaneDifference": 0.03766685356722504,
+      "terrainDifference": 0.03842267998520306,
+      "supportSamples": 780,
+      "airborne": 165,
+      "oneAxle": 296,
+      "takeoffs": 9,
+      "landings": 8,
+      "maximumPitch": 0.15356038535374325,
+      "maximumLean": 0.2320567019132196,
+      "maximumSteer": 0.1763126694973866,
+      "worstSupport": {
+        "tick": 298,
+        "axle": "front",
+        "pitch": -0.05005536367906752,
+        "bodyPitch": -0.04820252423794825,
+        "lean": -0.007567225943964505,
+        "steer": 0,
+        "stroke": 0.009459494383926514,
+        "load": 2535.0836852869706,
+        "normal": [
+          -0.13447756609020384,
+          0.9909132331273414,
+          0.002597812844295396
+        ],
+        "forcePoint": [
+          -10.92254461729254,
+          0.11593645999378582,
+          7.359802921697039
+        ],
+        "hub": [
+          -10.94658090648819,
+          0.4328874234747394,
+          7.356922926747442
+        ],
+        "patch": [
+          -10.899198197897832,
+          0.08111504467888443,
+          7.351225445304265
+        ],
+        "terrainHeight": 0.11953772466408749,
+        "signedTerrainGap": -0.03842267998520306,
+        "geometryNormalGap": -0.006400736082086326,
+        "postureAndCrownNormalGap": -0.03126611748513871
+      },
+      "commonDifference": 0.013366959856241872,
+      "accuracy": [
+        {
+          "publication": 30,
+          "mean": 0.0007357159422659945,
+          "maximum": 0.01336712367896406,
+          "worst": {
+            "tick": 234,
+            "axle": "front",
+            "alpha": 0.5,
+            "airborne": [
+              1,
+              0
+            ],
+            "frontLoaded": [
+              false,
+              true
+            ],
+            "rearLoaded": [
+              false,
+              false
+            ],
+            "bottom": [
+              0,
+              0
+            ],
+            "landingSpeed": [
+              0,
+              2.207706928253174
+            ]
+          }
+        },
+        {
+          "publication": 60,
+          "mean": 0.0001430279727783377,
+          "maximum": 0.0059537872622498975,
+          "worst": {
+            "tick": 235,
+            "axle": "front",
+            "alpha": 0.5,
+            "airborne": [
+              0,
+              0
+            ],
+            "frontLoaded": [
+              true,
+              true
+            ],
+            "rearLoaded": [
+              false,
+              false
+            ],
+            "bottom": [
+              0,
+              0
+            ],
+            "landingSpeed": [
+              2.207706928253174,
+              2.207706928253174
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "receipts": {
+    "vitestSha256": "f68205cda3cec97fa379d7f8e688b13e5538b5c0164326b32db489545ab381ba",
+    "logSha256": "bcb4116f854f53981e9f8a40e2cd30b2af09ac03bf7a75fc90d8a0f46403154b"
+  }
+}

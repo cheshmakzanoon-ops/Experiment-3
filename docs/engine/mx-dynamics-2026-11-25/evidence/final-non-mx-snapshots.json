@@ -1,0 +1,637 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-11-25T23:57:23.942Z",
+  "gitHead": "b2879248fbce047a299c45b84476adbcc3dbc71f",
+  "nodeVersion": "v24.22.3",
+  "byteOrder": "LE",
+  "runnerSha256": "b9bb64bb3bf0c3f33aaae2c1b894b3d783f496627881595b289d45fd6f1f0417",
+  "sourceSha256": {
+    "src/core/session-identity.ts": "4184b2aa573b674137f15818866407c7193d2bd70307249bb92f36ea87fbaeba",
+    "src/simulation/world.ts": "bfc08c1d8e3237ccf7a4e69eb1234022316eea3540b9e58252eb0d863ca8f6f1",
+    "src/simulation/protocol.ts": "eb17339446450136412f774ae2a38babcc45e7a3b2cafab638f70bf809047e0a",
+    "src/simulation/vehicle.ts": "c2464d2d612182aff0f01a2507c32c4d2a3a63d05c407f65b17a5e7e05277de9",
+    "src/simulation/bike-vehicle.ts": "ba916a4ab1a6830235fbfcf7f85885cba6dd9b71816eefff49fdf9f74d58a0ff",
+    "src/simulation/offroad/dirt-bike-vehicle.ts": "7a72b2747d4469bc652ce965afab4a8f94a7b1606073291c6d36045182b9361e"
+  },
+  "workload": {
+    "hz": 120,
+    "dt": 0.008333333333333333,
+    "seconds": 10,
+    "steps": 1200,
+    "protocolVersion": 17,
+    "inputSha256": "0a729117f5a79f6902ddec7a330748c14be5422eb93489c4f2fc9fe9ea650044",
+    "description": "One scripted player and one seeded AI opponent per vehicle, Aurel, clear, practice. Initial snapshot and every 120 Hz tick; raw native-endian Float32 bytes concatenated into SHA-256."
+  },
+  "cases": [
+    {
+      "id": "apx01-aurel-clear",
+      "options": {
+        "circuit": "aurel",
+        "mode": "practice",
+        "laps": 3,
+        "opponents": 1,
+        "vehicles": [
+          "apx01",
+          "apx01"
+        ],
+        "weather": "clear",
+        "assist": "sport",
+        "compound": "medium",
+        "setup": {
+          "frontWing": 0.55,
+          "rearWing": 0.58,
+          "brakeBias": 0.56,
+          "diffPower": 0.5,
+          "diffCoast": 0.25,
+          "frontSpring": 115000,
+          "rearSpring": 125000,
+          "frontARB": 26000,
+          "rearARB": 21000,
+          "frontRide": 0.065,
+          "rearRide": 0.075,
+          "frontPressure": 155,
+          "rearPressure": 148,
+          "frontCamber": -0.044,
+          "rearCamber": -0.023,
+          "frontToe": -0.001,
+          "rearToe": 0.002,
+          "frontPreload": 0,
+          "rearPreload": 0,
+          "frontDamping": 0.5,
+          "rearDamping": 0.5,
+          "steeringDamper": 0.5,
+          "gearing": 1,
+          "tractionMap": 3,
+          "wheelieMap": 3,
+          "engineBrakeMap": 0
+        },
+        "seed": 73021,
+        "aiSkill": 0.9
+      },
+      "identity": {
+        "formatVersion": 17,
+        "simulationVersion": 41,
+        "tickHz": 120,
+        "circuit": "aurel",
+        "circuitHash": "6dcb0a79",
+        "ruleset": "open-practice",
+        "rulesetHash": "57bc6a03",
+        "vehicles": [
+          "apx01",
+          "apx01"
+        ],
+        "vehicleHashes": [
+          "eb95ef70",
+          "eb95ef70"
+        ],
+        "assist": "sport",
+        "seed": 73021
+      },
+      "category": {
+        "circuit": "aurel",
+        "vehicle": "apx01",
+        "physics": 41
+      },
+      "snapshotFloats": 686,
+      "snapshotCount": 1201,
+      "rawBytesHashed": 3295544,
+      "sha256": "0e1a963b4d6ef505e93734d3fa076717ab2ec3b1b61a3e52902600a4b081ebec",
+      "checkpoints": [
+        {
+          "tick": 0,
+          "sha256": "93ddc833f26120a96a726d22cc06916217236dd155a358f83f7793ad56132b3f"
+        },
+        {
+          "tick": 120,
+          "sha256": "07d87894bbf9d411659ea554b2248af5d7d6befe5f268f05a503dd8ee7d25297"
+        },
+        {
+          "tick": 240,
+          "sha256": "687bfff262078e3f24fce836226b09bdf27d05587dbbebe4fe2412041c515457"
+        },
+        {
+          "tick": 360,
+          "sha256": "cd9fa225730bf612a0ae0a8bba116b2d88a86b786aacd6ebf440fac302d1fd0c"
+        },
+        {
+          "tick": 480,
+          "sha256": "360c018272afc50a86daeda2aa4be4e3a4b4ee97d61e3300c0c2d58186a2f4ea"
+        },
+        {
+          "tick": 600,
+          "sha256": "88bf7b98aeadce15b421ec90d1546eaf147c5d0480a2065a73be0a18cefecaf9"
+        },
+        {
+          "tick": 720,
+          "sha256": "052332f3d4dd66127abca8a3ea507b209189deea0dd8638482117b1f3bf62453"
+        },
+        {
+          "tick": 840,
+          "sha256": "09cab8050ea3fd894d65079882a48aa58fbd4259f544759a697cedebdb0d8a94"
+        },
+        {
+          "tick": 960,
+          "sha256": "c04b1118440c1d64022cbc838178065ee9d070fbb6034b13db8a881269b6bef6"
+        },
+        {
+          "tick": 1080,
+          "sha256": "c6e3ad1ca8b8310034bec88e6c47db35b25be64bfadcd38885f4659f486d2dc0"
+        },
+        {
+          "tick": 1200,
+          "sha256": "29e3b7746df531e3f2458ac636a619c11578367776830a1f8b979ebe2ddaec14"
+        }
+      ],
+      "peakPlayerSpeed": 34.20370101928711,
+      "finalPlayerSpeed": 19.24680519104004
+    },
+    {
+      "id": "gpr1-aurel-clear",
+      "options": {
+        "circuit": "aurel",
+        "mode": "practice",
+        "laps": 3,
+        "opponents": 1,
+        "vehicles": [
+          "gpr1",
+          "gpr1"
+        ],
+        "weather": "clear",
+        "assist": "sport",
+        "compound": "medium",
+        "setup": {
+          "frontWing": 0.55,
+          "rearWing": 0.58,
+          "brakeBias": 0.56,
+          "diffPower": 0.5,
+          "diffCoast": 0.25,
+          "frontSpring": 115000,
+          "rearSpring": 125000,
+          "frontARB": 26000,
+          "rearARB": 21000,
+          "frontRide": 0.065,
+          "rearRide": 0.075,
+          "frontPressure": 155,
+          "rearPressure": 148,
+          "frontCamber": -0.044,
+          "rearCamber": -0.023,
+          "frontToe": -0.001,
+          "rearToe": 0.002,
+          "frontPreload": 0,
+          "rearPreload": 0,
+          "frontDamping": 0.5,
+          "rearDamping": 0.5,
+          "steeringDamper": 0.5,
+          "gearing": 1,
+          "tractionMap": 3,
+          "wheelieMap": 3,
+          "engineBrakeMap": 0
+        },
+        "seed": 73021,
+        "aiSkill": 0.9
+      },
+      "identity": {
+        "formatVersion": 17,
+        "simulationVersion": 41,
+        "tickHz": 120,
+        "circuit": "aurel",
+        "circuitHash": "6dcb0a79",
+        "ruleset": "open-practice",
+        "rulesetHash": "57bc6a03",
+        "vehicles": [
+          "gpr1",
+          "gpr1"
+        ],
+        "vehicleHashes": [
+          "5f121c00",
+          "5f121c00"
+        ],
+        "assist": "sport",
+        "seed": 73021
+      },
+      "category": {
+        "circuit": "aurel",
+        "vehicle": "gpr1",
+        "physics": 41
+      },
+      "snapshotFloats": 686,
+      "snapshotCount": 1201,
+      "rawBytesHashed": 3295544,
+      "sha256": "caa1ee1bceba1b016b331d5bd9497740dc96338d26544cc81d26a37380e41b56",
+      "checkpoints": [
+        {
+          "tick": 0,
+          "sha256": "8d88c20bc5f6ddf58c27593619230506324a834e2313fc039cfc0a99d43c0a6d"
+        },
+        {
+          "tick": 120,
+          "sha256": "8867cf59aa7758e6b9c251a9f85b92528a303f0d959eb4ce5391b7221852442d"
+        },
+        {
+          "tick": 240,
+          "sha256": "f61a23afcf709167f6f1cae5e52ff5d1603220d1aeac8b70895c16ac3ce9c522"
+        },
+        {
+          "tick": 360,
+          "sha256": "ce4b7ffad7d96697482c0a29c27d1ea6bc3eb1cb65296dcfa605983f3a11ee6e"
+        },
+        {
+          "tick": 480,
+          "sha256": "e56b155663947a6600ae50eb30ca6d0d7c46e2330bece1dd47af09dd76a824d7"
+        },
+        {
+          "tick": 600,
+          "sha256": "ef7e271fa4678396c0fd9091c8a0a107918093347f9b481773e21c0fb9d005e5"
+        },
+        {
+          "tick": 720,
+          "sha256": "33d4563640c636e296d21aee26e9a7064d7ee431270dcc389c1c53fe33cf9844"
+        },
+        {
+          "tick": 840,
+          "sha256": "b506d50ab402dee6ec060ccdda9d5b78f7957b2421f68bb0cd535fb260b20b54"
+        },
+        {
+          "tick": 960,
+          "sha256": "989fb9109312253b6e05e654b8a0ddd444b4df22f629d605716e77010b0a25cd"
+        },
+        {
+          "tick": 1080,
+          "sha256": "df9a14539ca07bdeeed00663f794f9e0a392cc3fe42d941496ce7c59d6f92871"
+        },
+        {
+          "tick": 1200,
+          "sha256": "902ba78a39d7f7cdef515d99bf400c2b4b0618d0a5110138898ff8ac1abeefeb"
+        }
+      ],
+      "peakPlayerSpeed": 36.313499450683594,
+      "finalPlayerSpeed": 36.313499450683594
+    },
+    {
+      "id": "sbk1000-aurel-clear",
+      "options": {
+        "circuit": "aurel",
+        "mode": "practice",
+        "laps": 3,
+        "opponents": 1,
+        "vehicles": [
+          "sbk1000",
+          "sbk1000"
+        ],
+        "weather": "clear",
+        "assist": "sport",
+        "compound": "medium",
+        "setup": {
+          "frontWing": 0.55,
+          "rearWing": 0.58,
+          "brakeBias": 0.56,
+          "diffPower": 0.5,
+          "diffCoast": 0.25,
+          "frontSpring": 115000,
+          "rearSpring": 125000,
+          "frontARB": 26000,
+          "rearARB": 21000,
+          "frontRide": 0.065,
+          "rearRide": 0.075,
+          "frontPressure": 155,
+          "rearPressure": 148,
+          "frontCamber": -0.044,
+          "rearCamber": -0.023,
+          "frontToe": -0.001,
+          "rearToe": 0.002,
+          "frontPreload": 0,
+          "rearPreload": 0,
+          "frontDamping": 0.5,
+          "rearDamping": 0.5,
+          "steeringDamper": 0.5,
+          "gearing": 1,
+          "tractionMap": 3,
+          "wheelieMap": 3,
+          "engineBrakeMap": 0
+        },
+        "seed": 73021,
+        "aiSkill": 0.9
+      },
+      "identity": {
+        "formatVersion": 17,
+        "simulationVersion": 41,
+        "tickHz": 120,
+        "circuit": "aurel",
+        "circuitHash": "6dcb0a79",
+        "ruleset": "open-practice",
+        "rulesetHash": "57bc6a03",
+        "vehicles": [
+          "sbk1000",
+          "sbk1000"
+        ],
+        "vehicleHashes": [
+          "7593a112",
+          "7593a112"
+        ],
+        "assist": "sport",
+        "seed": 73021
+      },
+      "category": {
+        "circuit": "aurel",
+        "vehicle": "sbk1000",
+        "physics": 41
+      },
+      "snapshotFloats": 686,
+      "snapshotCount": 1201,
+      "rawBytesHashed": 3295544,
+      "sha256": "67fccf665aaa07b5b529316e8b8f00308e44614fc5634de4a19fea773a922239",
+      "checkpoints": [
+        {
+          "tick": 0,
+          "sha256": "0b4ab5a8bffbc012fcb83b45a68336d36c979367588e343910c640d8bd9f56fc"
+        },
+        {
+          "tick": 120,
+          "sha256": "d541e7a97ba2a5abc82c3952c780274d3b588878fbb964e20efc52b233ff37e2"
+        },
+        {
+          "tick": 240,
+          "sha256": "71e096bfc56d996e1a0222627e25360859332957e41d6652afbadf90326b8e3f"
+        },
+        {
+          "tick": 360,
+          "sha256": "abcdd36002a1e4ab34e8b05bff350234c7f9c27ba732a605e7419e9889b9753f"
+        },
+        {
+          "tick": 480,
+          "sha256": "96fe104c579412dc0308e0bce0d0563347e04893fc3a063d1f49f7cd8d0fe2b3"
+        },
+        {
+          "tick": 600,
+          "sha256": "6b8d869cabb60acc2a2d19d04dec7299668194d2f20b11bffeae7dae8c7fcd49"
+        },
+        {
+          "tick": 720,
+          "sha256": "4a3df86db50c938dacc1191324bb2f4a2dfc2233d5f292563a11d8864ed6a75c"
+        },
+        {
+          "tick": 840,
+          "sha256": "d3342ccb8c48ca05f29e2937b7a728a4aac41e69a7c2dea47ed20d74203cfe51"
+        },
+        {
+          "tick": 960,
+          "sha256": "360aa4cd76afa6d501c51996df0ab6783939460eb3ab79d0b3e273164cfa7078"
+        },
+        {
+          "tick": 1080,
+          "sha256": "487f7aca5f1ee2483ff94e744a34c308b3e4d43f0edcfd80affeccca490db7ea"
+        },
+        {
+          "tick": 1200,
+          "sha256": "7916f2433c7abbbfa506b3b00761f96c1a3836e13be118fceda383d749a2d1d4"
+        }
+      ],
+      "peakPlayerSpeed": 24.26913070678711,
+      "finalPlayerSpeed": 20.84404182434082
+    },
+    {
+      "id": "sm450-aurel-clear",
+      "options": {
+        "circuit": "aurel",
+        "mode": "practice",
+        "laps": 3,
+        "opponents": 1,
+        "vehicles": [
+          "sm450",
+          "sm450"
+        ],
+        "weather": "clear",
+        "assist": "sport",
+        "compound": "medium",
+        "setup": {
+          "frontWing": 0.55,
+          "rearWing": 0.58,
+          "brakeBias": 0.56,
+          "diffPower": 0.5,
+          "diffCoast": 0.25,
+          "frontSpring": 115000,
+          "rearSpring": 125000,
+          "frontARB": 26000,
+          "rearARB": 21000,
+          "frontRide": 0.065,
+          "rearRide": 0.075,
+          "frontPressure": 155,
+          "rearPressure": 148,
+          "frontCamber": -0.044,
+          "rearCamber": -0.023,
+          "frontToe": -0.001,
+          "rearToe": 0.002,
+          "frontPreload": 0,
+          "rearPreload": 0,
+          "frontDamping": 0.5,
+          "rearDamping": 0.5,
+          "steeringDamper": 0.5,
+          "gearing": 1,
+          "tractionMap": 3,
+          "wheelieMap": 3,
+          "engineBrakeMap": 0
+        },
+        "seed": 73021,
+        "aiSkill": 0.9
+      },
+      "identity": {
+        "formatVersion": 17,
+        "simulationVersion": 41,
+        "tickHz": 120,
+        "circuit": "aurel",
+        "circuitHash": "6dcb0a79",
+        "ruleset": "open-practice",
+        "rulesetHash": "57bc6a03",
+        "vehicles": [
+          "sm450",
+          "sm450"
+        ],
+        "vehicleHashes": [
+          "a9e0a34c",
+          "a9e0a34c"
+        ],
+        "assist": "sport",
+        "seed": 73021
+      },
+      "category": {
+        "circuit": "aurel",
+        "vehicle": "sm450",
+        "physics": 41
+      },
+      "snapshotFloats": 686,
+      "snapshotCount": 1201,
+      "rawBytesHashed": 3295544,
+      "sha256": "0a173e5467298367869dbabbd730d367eaaec2b1788432978f175b9d3aa00283",
+      "checkpoints": [
+        {
+          "tick": 0,
+          "sha256": "4f2e0e5151c0f9fb8e37f471124564dfb1c36ac26610b8b6312de74e5ffd0ffd"
+        },
+        {
+          "tick": 120,
+          "sha256": "49a418b1061bed0cbaf466cade3eb9acf7f8d0067228332e2c5df21b333a1709"
+        },
+        {
+          "tick": 240,
+          "sha256": "44ff97c362e5422f7c7c9341bc9dc9875951f5f4d9ed22f053efe3c3e62e474c"
+        },
+        {
+          "tick": 360,
+          "sha256": "62f8099728ede644deee75af67aaf7dfdac215c6b61c623645d0cbd9bea2ae7a"
+        },
+        {
+          "tick": 480,
+          "sha256": "8c2ee55c72d232128cc0c1067b5158b1cd569e52d3a2d3f044f7339e3857c6cd"
+        },
+        {
+          "tick": 600,
+          "sha256": "b6ebce25111a752c30219aeefd3d32073d8ccca7aabcee910fc7e72ddd1e4e45"
+        },
+        {
+          "tick": 720,
+          "sha256": "8f6fadbd0c17a2f480848381ffbea8d6ab04da90c8eaf6715ff7a02da78fc5a4"
+        },
+        {
+          "tick": 840,
+          "sha256": "6d47677c8c578ca30aac76a7257067959bfdcfd6dce71c11ebda395e725b7f44"
+        },
+        {
+          "tick": 960,
+          "sha256": "f2d2865a4d0c30d673bc22419f8499b1429b159466bec8010b6cbe961e712923"
+        },
+        {
+          "tick": 1080,
+          "sha256": "df2a0c0140ef71c02cb516f4a24ef161412cf5cec36c95b0a81b6ef688446970"
+        },
+        {
+          "tick": 1200,
+          "sha256": "d6b1b3f77dc23d90a7e92362b991f8840191db9922b99c2102c534d24d62883f"
+        }
+      ],
+      "peakPlayerSpeed": 23.85541534423828,
+      "finalPlayerSpeed": 18.769540786743164
+    },
+    {
+      "id": "rcx6-aurel-clear",
+      "options": {
+        "circuit": "aurel",
+        "mode": "practice",
+        "laps": 3,
+        "opponents": 1,
+        "vehicles": [
+          "rcx6",
+          "rcx6"
+        ],
+        "weather": "clear",
+        "assist": "sport",
+        "compound": "medium",
+        "setup": {
+          "frontWing": 0.55,
+          "rearWing": 0.58,
+          "brakeBias": 0.56,
+          "diffPower": 0.5,
+          "diffCoast": 0.25,
+          "frontSpring": 115000,
+          "rearSpring": 125000,
+          "frontARB": 26000,
+          "rearARB": 21000,
+          "frontRide": 0.065,
+          "rearRide": 0.075,
+          "frontPressure": 155,
+          "rearPressure": 148,
+          "frontCamber": -0.044,
+          "rearCamber": -0.023,
+          "frontToe": -0.001,
+          "rearToe": 0.002,
+          "frontPreload": 0,
+          "rearPreload": 0,
+          "frontDamping": 0.5,
+          "rearDamping": 0.5,
+          "steeringDamper": 0.5,
+          "gearing": 1,
+          "tractionMap": 3,
+          "wheelieMap": 3,
+          "engineBrakeMap": 0
+        },
+        "seed": 73021,
+        "aiSkill": 0.9
+      },
+      "identity": {
+        "formatVersion": 17,
+        "simulationVersion": 41,
+        "tickHz": 120,
+        "circuit": "aurel",
+        "circuitHash": "6dcb0a79",
+        "ruleset": "open-practice",
+        "rulesetHash": "57bc6a03",
+        "vehicles": [
+          "rcx6",
+          "rcx6"
+        ],
+        "vehicleHashes": [
+          "54a04230",
+          "54a04230"
+        ],
+        "assist": "sport",
+        "seed": 73021
+      },
+      "category": {
+        "circuit": "aurel",
+        "vehicle": "rcx6",
+        "physics": 41
+      },
+      "snapshotFloats": 686,
+      "snapshotCount": 1201,
+      "rawBytesHashed": 3295544,
+      "sha256": "60b324e80ee59b92c2a4b53560bfbb7408506501e4408defa6e5db35fe0d2560",
+      "checkpoints": [
+        {
+          "tick": 0,
+          "sha256": "87f44020a5d4901d534608855d91a36d5c5aef7d1c7e05b6377c1cad649f96aa"
+        },
+        {
+          "tick": 120,
+          "sha256": "300a15454df8153de8decdd21e2f931e0d26365bf19b452507dbb88f3eb6cce8"
+        },
+        {
+          "tick": 240,
+          "sha256": "1763de7bef026aa0a87658f7a8c00d6ed241f39ba19d39a05d960e486e5af319"
+        },
+        {
+          "tick": 360,
+          "sha256": "26000cc22b2ec3cf462afe7053a7c00382a849d90c9d294ec253cb524d4ee6da"
+        },
+        {
+          "tick": 480,
+          "sha256": "8fa2378d802b9e492916978f1d298e3c4f3082d3e73243df49558a08598ac8e2"
+        },
+        {
+          "tick": 600,
+          "sha256": "425c9b0b14b2bf9dd52de992c1ee859e638589860bd8cde4a28d18fbf6d8106f"
+        },
+        {
+          "tick": 720,
+          "sha256": "830248efed61069c3f68d6f64848ecfd74d9588336a35bcea61259f6422b3b0e"
+        },
+        {
+          "tick": 840,
+          "sha256": "0e4fd4584777e78ae02aae6e70d06c5b9f3ae1c017fe1bd67c511b0d5940730d"
+        },
+        {
+          "tick": 960,
+          "sha256": "f4bd3dc56df8d0c94401a4acbfed2713c30510829eefcc288b62f89943fa8051"
+        },
+        {
+          "tick": 1080,
+          "sha256": "f27ed18bf714e03301c9fe8bdf55d5229b44c08b2378715fb9743416eb756a90"
+        },
+        {
+          "tick": 1200,
+          "sha256": "a8740cba0a1201f915f5d8c06076957ee564fe8fa0a4ad796a9081f602340b00"
+        }
+      ],
+      "peakPlayerSpeed": 32.22768783569336,
+      "finalPlayerSpeed": 15.891683578491211
+    }
+  ]
+}

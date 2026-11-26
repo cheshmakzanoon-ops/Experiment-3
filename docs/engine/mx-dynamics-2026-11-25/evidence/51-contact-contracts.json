@@ -1,0 +1,1306 @@
+{
+  "assignment": 51,
+  "sourceFingerprintAtVerification": "4c041cb338d0fa480e0514ee905137a24061494b98b9899949238f6b137be790",
+  "sourceFiles": 1129,
+  "sourceEdits": [],
+  "ownedTestSHA256": {
+    "tests/motocross-hard-stop-integration.test.ts": "01c8959340bfde433ad11cfab9fda4dd4e8e1b6a961ad1e44085ae220329ab66",
+    "tests/motocross-collision.test.ts": "b0c1013115f3046482e87dc554a27d9d06a7a4b73f60b2e673aa1db684b701ff"
+  },
+  "baseline": {
+    "commit": "2578271913c264f5ffd6131afea30723df14b65b",
+    "sourceArchiveReceipt": "47-upstream-source-receipt.json",
+    "nodeVersion": "v24.22.3"
+  },
+  "verification": {
+    "command": [
+      "node",
+      "node_modules/vitest/vitest.mjs",
+      "run",
+      "tests/motocross-hard-stop-integration.test.ts",
+      "tests/motocross-collision.test.ts",
+      "--maxWorkers=1",
+      "--reporter=json",
+      "--outputFile=test-results/agent51/contact-final.json"
+    ],
+    "success": true,
+    "tests": 29,
+    "passed": 29,
+    "failed": 0,
+    "files": [
+      {
+        "path": "tests/motocross-collision.test.ts",
+        "status": "passed",
+        "tests": 17
+      },
+      {
+        "path": "tests/motocross-hard-stop-integration.test.ts",
+        "status": "passed",
+        "tests": 12
+      }
+    ],
+    "observerTransparency": {
+      "parameterizedTests": 4,
+      "comparedPhysicalStates": 2592,
+      "bitExact": true,
+      "qualification": "Selected unrounded chassis/support/rotor/fuel/body channels; not a GPU or complete serialized-world assertion."
+    }
+  },
+  "hardStopContract": {
+    "oldPublicImpactCount": 1,
+    "observedFlatGroundImpacts": 2,
+    "retainedRule": "One coupled stop solve per relevant physical interval; all physical impulses are certified independently using their own mass, geometry and pre/post state.",
+    "firstObservedMassDiscrepancyKg": {
+      "mx250": [
+        177.99991401255608,
+        177.9999135958894
+      ],
+      "mx450": [
+        184.49983629682907,
+        184.49983444863014
+      ]
+    },
+    "retainedTolerances": {
+      "closingVelocityMS": 2e-09,
+      "linearMomentumDecimalPlaces": 8,
+      "pitchMomentumDecimalPlaces": 6,
+      "yawMomentumDecimalPlaces": 8,
+      "passivityJ": 1e-08,
+      "impactWorkDecimalPlaces": 5
+    },
+    "note": "Impulse records now store contemporaneous dynamics/body mass. The full public endpoint can have lower mass after another fuel-consuming physical interval."
+  },
+  "collisionCurrent": [
+    {
+      "assist": "raw",
+      "hz": 120,
+      "highest": 3.869855734260116,
+      "maxVy": 6.3500910846749585,
+      "maxCorrection": 0.15706767337868952,
+      "maxThrottleCut": 0,
+      "maxRearBrake": 0,
+      "projectedIntervals": 0,
+      "loops": [],
+      "judgments": [
+        {
+          "time": 0.24166666666666678,
+          "s": 185.86973157011846,
+          "distance": 0.9860495425791284,
+          "takeoffSpeed": 6.150755340849619,
+          "airTime": 0.03888888888888888,
+          "pitchError": 0.16341240010647173,
+          "slope": 0.5953332734549255,
+          "normalSpeed": -1.020267996475835,
+          "yawError": -0.024058720812427097,
+          "lateralSpeed": -0.28085536697220614,
+          "bottomSpeed": 0,
+          "outcome": "clean"
+        },
+        {
+          "time": 1.3918233206456805,
+          "s": 186.06957906174478,
+          "distance": 4.857256352878731,
+          "takeoffSpeed": 7.581935966811152,
+          "airTime": 1.089739987312349,
+          "pitchError": 1.2025373882317407,
+          "slope": -0.006137386537448796,
+          "normalSpeed": 4.5161125612101705,
+          "yawError": -3.96466146557472e-07,
+          "lateralSpeed": -0.11065235701663902,
+          "bottomSpeed": 0,
+          "outcome": "crash-rear"
+        }
+      ],
+      "crashes": 1,
+      "causes": [
+        {
+          "cause": "crash-rear",
+          "s": 186.07100088889922,
+          "time": 1.4041666666666635
+        }
+      ],
+      "riding": false,
+      "airborne": false,
+      "retired": false,
+      "position": [
+        13.756526163680437,
+        -5.655046904436174
+      ],
+      "speed": 0
+    },
+    {
+      "assist": "sport",
+      "hz": 120,
+      "highest": 3.773298968877319,
+      "maxVy": 6.215373763052579,
+      "maxCorrection": 0.155279136739958,
+      "maxThrottleCut": 0,
+      "maxRearBrake": 0,
+      "projectedIntervals": 0,
+      "loops": [],
+      "judgments": [
+        {
+          "time": 0.24166666666666678,
+          "s": 185.86977234955725,
+          "distance": 0.9834001970719237,
+          "takeoffSpeed": 6.14961567805015,
+          "airTime": 0.03888888888888888,
+          "pitchError": 0.17545133478929564,
+          "slope": 0.5963801058495444,
+          "normalSpeed": -1.0152721872099009,
+          "yawError": -0.023097998876003875,
+          "lateralSpeed": -0.2860630559294074,
+          "bottomSpeed": 0,
+          "outcome": "clean"
+        },
+        {
+          "time": 1.3558899937236344,
+          "s": 186.05332697715141,
+          "distance": 4.521057312972219,
+          "takeoffSpeed": 7.374167647983952,
+          "airTime": 1.0538066603903027,
+          "pitchError": 1.2659171498373636,
+          "slope": -0.005917151872384286,
+          "normalSpeed": 4.303463144594626,
+          "yawError": -4.941141120473832e-07,
+          "lateralSpeed": -0.11029939069574317,
+          "bottomSpeed": 0,
+          "outcome": "crash-rear"
+        }
+      ],
+      "crashes": 1,
+      "causes": [
+        {
+          "cause": "crash-rear",
+          "s": 186.05372487773946,
+          "time": 1.3624999999999972
+        }
+      ],
+      "riding": false,
+      "airborne": false,
+      "retired": false,
+      "position": [
+        13.778380283067827,
+        -6.185845772851897
+      ],
+      "speed": 0
+    },
+    {
+      "assist": "raw",
+      "hz": 240,
+      "highest": 3.1662297608603116,
+      "maxVy": 5.228038420316106,
+      "maxCorrection": 0.13379221137036038,
+      "maxThrottleCut": 0,
+      "maxRearBrake": 0,
+      "projectedIntervals": 3,
+      "loops": [
+        {
+          "time": 1.8624999999999945,
+          "s": 186.40117967609865,
+          "pitch": 1.2,
+          "pitchRate": 0.7282537591035015,
+          "frontLight": 0.40416666666666645,
+          "frontLoad": 0,
+          "rearLoad": 1475.6665425887586,
+          "noseTorque": 216.87421221798496,
+          "ground": -0.02994729657240971,
+          "relative": 1.2299472965724096,
+          "balanceAngle": 0.6599381988432557,
+          "cgAheadOfRear": -0.6425665157586915,
+          "speed": 6.642660231255434,
+          "vy": -0.061041264053963394,
+          "airborne": false
+        }
+      ],
+      "judgments": [
+        {
+          "time": 0.2416666666666669,
+          "s": 185.87085040422835,
+          "distance": 1.0243192948782298,
+          "takeoffSpeed": 6.348209440334075,
+          "airTime": 0.05208333333333333,
+          "pitchError": 0.1873447334546796,
+          "slope": 0.60029968846759,
+          "normalSpeed": -1.5756267825278147,
+          "yawError": -0.01194717290437217,
+          "lateralSpeed": -0.2833333259724753,
+          "bottomSpeed": 0,
+          "outcome": "clean"
+        },
+        {
+          "time": 1.0575231726950707,
+          "s": 186.01291029254594,
+          "distance": 3.155757137560469,
+          "takeoffSpeed": 6.433395321602405,
+          "airTime": 0.7728009504728497,
+          "pitchError": 1.2014407662033855,
+          "slope": -0.005040383825030631,
+          "normalSpeed": 2.5799352739107935,
+          "yawError": -5.28564043716982e-07,
+          "lateralSpeed": -0.1655722994059233,
+          "bottomSpeed": 0,
+          "outcome": "clean"
+        },
+        {
+          "time": 1.4541666666666626,
+          "s": 186.14259412848594,
+          "distance": 0.5262116110936603,
+          "takeoffSpeed": 5.130944364383227,
+          "airTime": 0.10416666666666666,
+          "pitchError": 1.2114943247138503,
+          "slope": -0.011372045717622776,
+          "normalSpeed": 0.05754127362969186,
+          "yawError": -0.001295379054862859,
+          "lateralSpeed": -0.12789457201480303,
+          "bottomSpeed": 0,
+          "outcome": "clean"
+        }
+      ],
+      "crashes": 1,
+      "causes": [
+        {
+          "cause": "loop-out",
+          "s": 186.40523220819625,
+          "time": 1.8666666666666611
+        }
+      ],
+      "riding": false,
+      "airborne": false,
+      "retired": false,
+      "position": [
+        13.125902777828594,
+        -2.415278467157003
+      ],
+      "speed": 0
+    },
+    {
+      "assist": "sport",
+      "hz": 240,
+      "highest": 3.1490320055370282,
+      "maxVy": 5.228094222848744,
+      "maxCorrection": 0.13098394232698402,
+      "maxThrottleCut": 0.2,
+      "maxRearBrake": 1,
+      "projectedIntervals": 3,
+      "loops": [],
+      "judgments": [
+        {
+          "time": 0.2416666666666669,
+          "s": 185.87093794561156,
+          "distance": 1.0198781544239073,
+          "takeoffSpeed": 6.347944225948184,
+          "airTime": 0.05208333333333333,
+          "pitchError": 0.20261083142157,
+          "slope": 0.6019946061460069,
+          "normalSpeed": -1.5665398457382878,
+          "yawError": -0.01536632520411555,
+          "lateralSpeed": -0.2723248321099443,
+          "bottomSpeed": 0,
+          "outcome": "clean"
+        },
+        {
+          "time": 1.049270046060941,
+          "s": 185.99566137379566,
+          "distance": 3.0153475651215342,
+          "takeoffSpeed": 6.339186947430556,
+          "airTime": 0.7645478238387202,
+          "pitchError": 1.2652361377152874,
+          "slope": -0.005236349300508504,
+          "normalSpeed": 2.5120825974352763,
+          "yawError": -8.885797655408327e-07,
+          "lateralSpeed": -0.1305048141257539,
+          "bottomSpeed": 0,
+          "outcome": "clean"
+        },
+        {
+          "time": 1.9624999999999941,
+          "s": 186.41604950372698,
+          "distance": 0.46300219447535057,
+          "takeoffSpeed": 3.7062541581984734,
+          "airTime": 0.12499999999999999,
+          "pitchError": 0.19617517941442986,
+          "slope": -0.03452245881786749,
+          "normalSpeed": 1.1614896486936828,
+          "yawError": -0.0005896138742578158,
+          "lateralSpeed": -0.08129214358678517,
+          "bottomSpeed": 0,
+          "outcome": "clean"
+        },
+        {
+          "time": 2.683333333333361,
+          "s": 187.15794475925213,
+          "distance": 0,
+          "takeoffSpeed": 1.3142553070225582,
+          "airTime": 0,
+          "pitchError": -0.034098750003263206,
+          "slope": -0.07716283329694572,
+          "normalSpeed": 0.45278915350529897,
+          "yawError": 0,
+          "lateralSpeed": -1.7983667333436677,
+          "bottomSpeed": 0,
+          "outcome": "clean"
+        }
+      ],
+      "crashes": 0,
+      "causes": [],
+      "riding": true,
+      "airborne": false,
+      "retired": false,
+      "position": [
+        12.298445035627587,
+        -2.0396647866921884
+      ],
+      "speed": 0.038952022592438774
+    },
+    {
+      "assist": "raw",
+      "hz": 480,
+      "highest": 3.282751679109511,
+      "maxVy": 5.488786630156208,
+      "maxCorrection": 0.13387149889503316,
+      "maxThrottleCut": 0,
+      "maxRearBrake": 0,
+      "projectedIntervals": 6,
+      "loops": [
+        {
+          "time": 1.9020833333333753,
+          "s": 186.48369315326693,
+          "pitch": 1.2,
+          "pitchRate": 0.5448485610005197,
+          "frontLight": 0.4020833333333325,
+          "frontLoad": 0,
+          "rearLoad": 1565.386347827996,
+          "noseTorque": 174.9615239630971,
+          "ground": -0.037636109107491725,
+          "relative": 1.2376361091074917,
+          "balanceAngle": 0.6599381988432557,
+          "cgAheadOfRear": -0.6502552730830569,
+          "speed": 6.164111730516775,
+          "vy": -0.11168279663722755,
+          "airborne": false
+        }
+      ],
+      "judgments": [
+        {
+          "time": 0.24374999999999974,
+          "s": 185.87094263942936,
+          "distance": 1.4703020596930925,
+          "takeoffSpeed": 6.449040385318799,
+          "airTime": 0.06041666666666666,
+          "pitchError": 0.27378626247356563,
+          "slope": 0.5434644251255588,
+          "normalSpeed": -2.2398709392168934,
+          "yawError": -0.0037931917727933944,
+          "lateralSpeed": -0.27608127657291104,
+          "bottomSpeed": 0,
+          "outcome": "clean"
+        },
+        {
+          "time": 1.1086693118045055,
+          "s": 186.04314137931385,
+          "distance": 3.1684158877049184,
+          "takeoffSpeed": 6.408072746408786,
+          "airTime": 0.8347109784711672,
+          "pitchError": 1.2014169509649597,
+          "slope": -0.0050168305157702675,
+          "normalSpeed": 2.9856210783076533,
+          "yawError": -5.369845662853824e-07,
+          "lateralSpeed": -0.19476613434874473,
+          "bottomSpeed": 0,
+          "outcome": "clean"
+        },
+        {
+          "time": 1.4979166666666885,
+          "s": 186.19601085199315,
+          "distance": 0.6279432012927751,
+          "takeoffSpeed": 4.784207669831843,
+          "airTime": 0.1354166666666668,
+          "pitchError": 1.2124170675572707,
+          "slope": -0.013449811107484026,
+          "normalSpeed": 0.05717603204159912,
+          "yawError": -0.0021063834847527,
+          "lateralSpeed": -0.19539528087532199,
+          "bottomSpeed": 0,
+          "outcome": "clean"
+        }
+      ],
+      "crashes": 1,
+      "causes": [
+        {
+          "cause": "loop-out",
+          "s": 186.48596127943267,
+          "time": 1.9041666666667088
+        }
+      ],
+      "riding": false,
+      "airborne": false,
+      "retired": false,
+      "position": [
+        13.04019340070599,
+        -3.1164054231784846
+      ],
+      "speed": 0
+    },
+    {
+      "assist": "sport",
+      "hz": 480,
+      "highest": 3.264535250716764,
+      "maxVy": 5.488832443367541,
+      "maxCorrection": 0.12640663871957758,
+      "maxThrottleCut": 0.2,
+      "maxRearBrake": 1,
+      "projectedIntervals": 6,
+      "loops": [],
+      "judgments": [
+        {
+          "time": 0.24374999999999974,
+          "s": 185.87097973101106,
+          "distance": 1.459855777937531,
+          "takeoffSpeed": 6.448946573055816,
+          "airTime": 0.06041666666666666,
+          "pitchError": 0.2910686013035799,
+          "slope": 0.5457608760755416,
+          "normalSpeed": -2.227353162808287,
+          "yawError": -0.003939958297064633,
+          "lateralSpeed": -0.2762286893288922,
+          "bottomSpeed": 0,
+          "outcome": "clean"
+        },
+        {
+          "time": 1.101204724845595,
+          "s": 186.02125340556722,
+          "distance": 3.033986570689958,
+          "takeoffSpeed": 6.328289844853643,
+          "airTime": 0.8272463915122573,
+          "pitchError": 1.265085374369592,
+          "slope": -0.005085435144179057,
+          "normalSpeed": 2.924942656037849,
+          "yawError": -1.2678359806378665e-06,
+          "lateralSpeed": -0.16666981065897443,
+          "bottomSpeed": 0,
+          "outcome": "clean"
+        },
+        {
+          "time": 1.4645833333333536,
+          "s": 186.14231788222173,
+          "distance": 0.367616309402277,
+          "takeoffSpeed": 4.628110770332444,
+          "airTime": 0.08125000000000004,
+          "pitchError": 1.241044078513654,
+          "slope": -0.011774306083784188,
+          "normalSpeed": -0.24904242168413115,
+          "yawError": -0.0019507857013679108,
+          "lateralSpeed": -0.14851239745937855,
+          "bottomSpeed": 0,
+          "outcome": "clean"
+        },
+        {
+          "time": 2.7187500000000058,
+          "s": 187.31070355401027,
+          "distance": 0.05081578425861136,
+          "takeoffSpeed": 1.5004102772278696,
+          "airTime": 0.03125,
+          "pitchError": -0.1980736386423227,
+          "slope": -0.06004751715953416,
+          "normalSpeed": 0.8373695510270647,
+          "yawError": 0.05701478571385801,
+          "lateralSpeed": -1.3955414198154263,
+          "bottomSpeed": 0,
+          "outcome": "clean"
+        }
+      ],
+      "crashes": 0,
+      "causes": [],
+      "riding": true,
+      "airborne": false,
+      "retired": false,
+      "position": [
+        12.375220945196512,
+        -2.034862652437436
+      ],
+      "speed": 0.020798511637081074
+    },
+    {
+      "assist": "raw",
+      "hz": 960,
+      "highest": 3.3623595887407656,
+      "maxVy": 5.43417804319173,
+      "maxCorrection": 0.24126982037916408,
+      "maxThrottleCut": 0,
+      "maxRearBrake": 0,
+      "projectedIntervals": 8,
+      "loops": [
+        {
+          "time": 1.9354166666666368,
+          "s": 186.44489027533916,
+          "pitch": 1.2,
+          "pitchRate": 0.4280175672653498,
+          "frontLight": 0.4010416666666656,
+          "frontLoad": 0,
+          "rearLoad": 1629.7636429531306,
+          "noseTorque": 146.95721653087736,
+          "ground": -0.03439811750003529,
+          "relative": 1.2343981175000351,
+          "balanceAngle": 0.6599381988432557,
+          "cgAheadOfRear": -0.6470219641582866,
+          "speed": 5.875157367148291,
+          "vy": -0.09203657509618493,
+          "airborne": false
+        }
+      ],
+      "judgments": [
+        {
+          "time": 0.24687499999999943,
+          "s": 185.8722829278961,
+          "distance": 1.4759303616359782,
+          "takeoffSpeed": 6.31037005714878,
+          "airTime": 0.0677083333333334,
+          "pitchError": 0.2833809670343248,
+          "slope": 0.5457989754783995,
+          "normalSpeed": -2.2906131727030536,
+          "yawError": -0.0014141631400684594,
+          "lateralSpeed": -0.2810019688141384,
+          "bottomSpeed": 0,
+          "outcome": "clean"
+        },
+        {
+          "time": 1.145590436460543,
+          "s": 186.03551321661894,
+          "distance": 3.1816846850729084,
+          "takeoffSpeed": 6.441592814443739,
+          "airTime": 0.8757987697938785,
+          "pitchError": 1.2014105572192366,
+          "slope": -0.005010505100966185,
+          "normalSpeed": 3.234585905130503,
+          "yawError": -5.930765593186577e-07,
+          "lateralSpeed": -0.17792097207622792,
+          "bottomSpeed": 0.12994730430038198,
+          "outcome": "bottomed"
+        },
+        {
+          "time": 1.5333333333333263,
+          "s": 186.18038995536904,
+          "distance": 0.6813361318755626,
+          "takeoffSpeed": 4.622568083437062,
+          "airTime": 0.15416666666666642,
+          "pitchError": 1.2107077240714124,
+          "slope": -0.012284438536211044,
+          "normalSpeed": 0.06952390680208896,
+          "yawError": -0.0018769790578092263,
+          "lateralSpeed": -0.20803682484715472,
+          "bottomSpeed": 0,
+          "outcome": "clean"
+        }
+      ],
+      "crashes": 1,
+      "causes": [
+        {
+          "cause": "loop-out",
+          "s": 186.4459463054883,
+          "time": 1.9364583333333034
+        }
+      ],
+      "riding": false,
+      "airborne": false,
+      "retired": false,
+      "position": [
+        13.122945632942413,
+        -3.4806923414169537
+      ],
+      "speed": 0
+    },
+    {
+      "assist": "sport",
+      "hz": 960,
+      "highest": 3.3278721469161274,
+      "maxVy": 5.434232770772556,
+      "maxCorrection": 0.2281897592377239,
+      "maxThrottleCut": 0.2,
+      "maxRearBrake": 1,
+      "projectedIntervals": 8,
+      "loops": [],
+      "judgments": [
+        {
+          "time": 0.24687499999999943,
+          "s": 185.87232898545778,
+          "distance": 1.4636017503585617,
+          "takeoffSpeed": 6.3102902320730445,
+          "airTime": 0.0677083333333334,
+          "pitchError": 0.3028835446110374,
+          "slope": 0.5484183947928724,
+          "normalSpeed": -2.2769495374105047,
+          "yawError": -0.0009646179707267466,
+          "lateralSpeed": -0.2833099656651443,
+          "bottomSpeed": 0,
+          "outcome": "clean"
+        },
+        {
+          "time": 1.1310054989007925,
+          "s": 186.0195312753192,
+          "distance": 3.0321375680736864,
+          "takeoffSpeed": 6.352117144639896,
+          "airTime": 0.8612138322341266,
+          "pitchError": 1.265021449471356,
+          "slope": -0.005021484311943254,
+          "normalSpeed": 3.1284256179846333,
+          "yawError": -1.1401511042507234e-06,
+          "lateralSpeed": -0.1619819543439445,
+          "bottomSpeed": 0.028607980520833944,
+          "outcome": "clean"
+        },
+        {
+          "time": 1.4947916666666619,
+          "s": 186.13906612964615,
+          "distance": 0.4627255519266151,
+          "takeoffSpeed": 4.508733407969929,
+          "airTime": 0.10624999999999993,
+          "pitchError": 1.248408470038349,
+          "slope": -0.011192157417198232,
+          "normalSpeed": -0.19627313330206403,
+          "yawError": -0.0018598566268414193,
+          "lateralSpeed": -0.17024445688529039,
+          "bottomSpeed": 0,
+          "outcome": "clean"
+        },
+        {
+          "time": 2.7854166666665887,
+          "s": 187.30903465495237,
+          "distance": 0.056640292140198965,
+          "takeoffSpeed": 0.8870795931285571,
+          "airTime": 0.034375,
+          "pitchError": -0.07325086433804265,
+          "slope": -0.059515183171147984,
+          "normalSpeed": 0.3774767269075373,
+          "yawError": 0.04810322551436231,
+          "lateralSpeed": -1.6092526390755213,
+          "bottomSpeed": 0,
+          "outcome": "clean"
+        }
+      ],
+      "crashes": 0,
+      "causes": [],
+      "riding": true,
+      "airborne": false,
+      "retired": false,
+      "position": [
+        12.253827379844916,
+        -2.0414692160690464
+      ],
+      "speed": 0.00977820774939124
+    }
+  ],
+  "collisionUpstream": [
+    {
+      "assist": "raw",
+      "hz": 120,
+      "highest": 4.086313386893982,
+      "maxVy": 6.568835576555526,
+      "maxCorrection": 0.2041827078678043,
+      "maxThrottleCut": 0,
+      "maxRearBrake": 0,
+      "projectedIntervals": 3,
+      "loops": [],
+      "judgments": [
+        {
+          "time": 0.2333333333333333,
+          "s": 185.84359524968852,
+          "distance": 0.9848414832938992,
+          "takeoffSpeed": 6.941893550950565,
+          "airTime": 0.03333333333333333,
+          "pitchError": 0.14070641508790527,
+          "slope": 0.5924279583047218,
+          "normalSpeed": -0.6352201468730395,
+          "yawError": 0.033545376484151755,
+          "lateralSpeed": 0.07357678290112721,
+          "bottomSpeed": 0,
+          "outcome": "clean"
+        },
+        {
+          "time": 1.4537538209444971,
+          "s": 185.77842436896015,
+          "distance": 6.227859668859809,
+          "takeoffSpeed": 8.283175890646485,
+          "airTime": 1.1454204876111649,
+          "pitchError": 1.2019144633309373,
+          "slope": -0.005514463148009916,
+          "normalSpeed": 4.9824811524644375,
+          "yawError": 0,
+          "lateralSpeed": -0.018619288365428546,
+          "bottomSpeed": 0,
+          "outcome": "crash-rear"
+        }
+      ],
+      "crashes": 1,
+      "causes": [
+        {
+          "cause": "crash-rear",
+          "s": 185.77818240743466,
+          "time": 1.466666666666664
+        }
+      ],
+      "riding": false,
+      "airborne": false,
+      "retired": false,
+      "position": [
+        14.10660818367824,
+        -3.700000000000004
+      ],
+      "speed": 0
+    },
+    {
+      "assist": "sport",
+      "hz": 120,
+      "highest": 4.060249292199064,
+      "maxVy": 6.543335514991042,
+      "maxCorrection": 0.2029973624317485,
+      "maxThrottleCut": 0,
+      "maxRearBrake": 0,
+      "projectedIntervals": 3,
+      "loops": [],
+      "judgments": [
+        {
+          "time": 0.2333333333333333,
+          "s": 185.8434668450834,
+          "distance": 0.9831788528587082,
+          "takeoffSpeed": 6.941893550950565,
+          "airTime": 0.03333333333333333,
+          "pitchError": 0.15105417306294155,
+          "slope": 0.5930806350864097,
+          "normalSpeed": -0.6308078565924651,
+          "yawError": 0.03299947679685442,
+          "lateralSpeed": 0.08601354891061028,
+          "bottomSpeed": 0,
+          "outcome": "clean"
+        },
+        {
+          "time": 1.4458963299073098,
+          "s": 185.7805096391677,
+          "distance": 6.157826072170518,
+          "takeoffSpeed": 8.248266086755772,
+          "airTime": 1.1375629965739775,
+          "pitchError": 1.2655251196870358,
+          "slope": -0.005525120840472217,
+          "normalSpeed": 4.930817271705684,
+          "yawError": 0,
+          "lateralSpeed": -0.023174462182715194,
+          "bottomSpeed": 0,
+          "outcome": "crash-rear"
+        }
+      ],
+      "crashes": 1,
+      "causes": [
+        {
+          "cause": "crash-rear",
+          "s": 185.7802986805906,
+          "time": 1.4583333333333306
+        }
+      ],
+      "riding": false,
+      "airborne": false,
+      "retired": false,
+      "position": [
+        14.105815495872143,
+        -3.700000000000004
+      ],
+      "speed": 0
+    },
+    {
+      "assist": "raw",
+      "hz": 240,
+      "highest": 5.233687883837402,
+      "maxVy": 7.702181169238038,
+      "maxCorrection": 0.19369252853217084,
+      "maxThrottleCut": 0,
+      "maxRearBrake": 0,
+      "projectedIntervals": 8,
+      "loops": [],
+      "judgments": [
+        {
+          "time": 0.22500000000000028,
+          "s": 185.8495791457948,
+          "distance": 1.0637504200757428,
+          "takeoffSpeed": 11.184810184455833,
+          "airTime": 0.041666666666666664,
+          "pitchError": 0.08729602618233512,
+          "slope": 0.5850971622891589,
+          "normalSpeed": 1.7884249876089169,
+          "yawError": -0.010635981745001532,
+          "lateralSpeed": 0.16727669867756034,
+          "bottomSpeed": 8.881784197001252e-16,
+          "outcome": "clean"
+        },
+        {
+          "time": 1.779399503673383,
+          "s": 185.82496430536332,
+          "distance": 10.380798869834761,
+          "takeoffSpeed": 10.587960757789508,
+          "airTime": 1.479399503673384,
+          "pitchError": 1.5125583416961637,
+          "slope": -0.3161583416956349,
+          "normalSpeed": 4.389315691819812,
+          "yawError": -0.0028390502739121196,
+          "lateralSpeed": 0.05750126987303452,
+          "bottomSpeed": 0,
+          "outcome": "crash-rear"
+        }
+      ],
+      "crashes": 1,
+      "causes": [
+        {
+          "cause": "crash-rear",
+          "s": 185.82488222797724,
+          "time": 1.787499999999995
+        }
+      ],
+      "riding": false,
+      "airborne": false,
+      "retired": false,
+      "position": [
+        13.983536698589939,
+        -3.700000000000004
+      ],
+      "speed": 0
+    },
+    {
+      "assist": "sport",
+      "hz": 240,
+      "highest": 5.2198415628077495,
+      "maxVy": 7.693472456726684,
+      "maxCorrection": 0.19307244989704042,
+      "maxThrottleCut": 0,
+      "maxRearBrake": 0,
+      "projectedIntervals": 8,
+      "loops": [],
+      "judgments": [
+        {
+          "time": 0.22500000000000028,
+          "s": 185.849582806179,
+          "distance": 1.062730308636495,
+          "takeoffSpeed": 11.184810184455833,
+          "airTime": 0.041666666666666664,
+          "pitchError": 0.09999420896305189,
+          "slope": 0.5850961969522498,
+          "normalSpeed": 1.7884236875419053,
+          "yawError": -0.010635981745001532,
+          "lateralSpeed": 0.165411360715018,
+          "bottomSpeed": 0,
+          "outcome": "clean"
+        },
+        {
+          "time": 1.780954232820654,
+          "s": 185.82499939412435,
+          "distance": 10.469932052171934,
+          "takeoffSpeed": 10.563833431070803,
+          "airTime": 1.480954232820655,
+          "pitchError": 1.6375312205794177,
+          "slope": -0.37753122058264094,
+          "normalSpeed": 3.851479783637299,
+          "yawError": -0.002372814997925777,
+          "lateralSpeed": 0.041933948972049856,
+          "bottomSpeed": 0,
+          "outcome": "crash-rear"
+        }
+      ],
+      "crashes": 1,
+      "causes": [
+        {
+          "cause": "crash-rear",
+          "s": 185.82498145449233,
+          "time": 1.787499999999995
+        }
+      ],
+      "riding": false,
+      "airborne": false,
+      "retired": false,
+      "position": [
+        14.024434985538102,
+        -3.700000000000004
+      ],
+      "speed": 0
+    },
+    {
+      "assist": "raw",
+      "hz": 480,
+      "highest": 5.207468140057388,
+      "maxVy": 7.65068503472617,
+      "maxCorrection": 0.21704250052499063,
+      "maxThrottleCut": 0,
+      "maxRearBrake": 0,
+      "projectedIntervals": 13,
+      "loops": [],
+      "judgments": [
+        {
+          "time": 0.22916666666666646,
+          "s": 185.85087008998823,
+          "distance": 1.0886387175216738,
+          "takeoffSpeed": 11.321842093930504,
+          "airTime": 0.049999999999999996,
+          "pitchError": 0.11557312519431917,
+          "slope": 0.585024598096981,
+          "normalSpeed": 1.6364417273791354,
+          "yawError": 0.0009239026012456169,
+          "lateralSpeed": -0.03413373796590201,
+          "bottomSpeed": 0,
+          "outcome": "clean"
+        },
+        {
+          "time": 1.7708210328885243,
+          "s": 185.87193617603953,
+          "distance": 10.419989816412349,
+          "takeoffSpeed": 10.649472893918126,
+          "airTime": 1.4791543662218432,
+          "pitchError": 1.5120553798487457,
+          "slope": -0.31565537984821024,
+          "normalSpeed": 4.344614822722867,
+          "yawError": -0.0013808118186588877,
+          "lateralSpeed": 0.05297840136664007,
+          "bottomSpeed": 0,
+          "outcome": "crash-rear"
+        }
+      ],
+      "crashes": 1,
+      "causes": [
+        {
+          "cause": "crash-rear",
+          "s": 185.8719357124313,
+          "time": 1.7729166666667022
+        }
+      ],
+      "riding": false,
+      "airborne": false,
+      "retired": false,
+      "position": [
+        13.943091627398697,
+        -3.700000000000004
+      ],
+      "speed": 0
+    },
+    {
+      "assist": "sport",
+      "hz": 480,
+      "highest": 5.198794072639764,
+      "maxVy": 7.646471983824889,
+      "maxCorrection": 0.21560417286437564,
+      "maxThrottleCut": 0,
+      "maxRearBrake": 0,
+      "projectedIntervals": 13,
+      "loops": [],
+      "judgments": [
+        {
+          "time": 0.22916666666666646,
+          "s": 185.85085231211713,
+          "distance": 1.0881995426549849,
+          "takeoffSpeed": 11.321842093930504,
+          "airTime": 0.049999999999999996,
+          "pitchError": 0.13086206926813648,
+          "slope": 0.5850207769250767,
+          "normalSpeed": 1.6363810382093467,
+          "yawError": 0.0007875617709881994,
+          "lateralSpeed": -0.029587061157640156,
+          "bottomSpeed": 0,
+          "outcome": "clean"
+        },
+        {
+          "time": 1.7729166666667022,
+          "s": 185.86574964181398,
+          "distance": 10.483415287748102,
+          "takeoffSpeed": 10.641457061022978,
+          "airTime": 1.481250000000021,
+          "pitchError": 1.6164036299624698,
+          "slope": -0.35640362996550873,
+          "normalSpeed": 3.9890749644628785,
+          "yawError": 0.004958622748131176,
+          "lateralSpeed": -0.014293252946108451,
+          "bottomSpeed": 0,
+          "outcome": "crash-rear"
+        }
+      ],
+      "crashes": 1,
+      "causes": [
+        {
+          "cause": "crash-rear",
+          "s": 185.8657072929699,
+          "time": 1.777083333333369
+        }
+      ],
+      "riding": false,
+      "airborne": false,
+      "retired": false,
+      "position": [
+        14.001734489527786,
+        -3.700000000000004
+      ],
+      "speed": 0
+    },
+    {
+      "assist": "raw",
+      "hz": 960,
+      "highest": 1.172930510354045,
+      "maxVy": 5.241593781734293,
+      "maxCorrection": 0.07948826520918528,
+      "maxThrottleCut": 0,
+      "maxRearBrake": 0,
+      "projectedIntervals": 0,
+      "loops": [],
+      "judgments": [],
+      "crashes": 1,
+      "causes": [
+        {
+          "cause": "contact",
+          "s": 36.00037744398662,
+          "time": 0.18124999999999966
+        }
+      ],
+      "riding": true,
+      "airborne": false,
+      "retired": false,
+      "position": [
+        14.58800902768731,
+        -15.899999559280918
+      ],
+      "speed": 1.292914219426237
+    },
+    {
+      "assist": "sport",
+      "hz": 960,
+      "highest": 1.173057604294328,
+      "maxVy": 5.241593781734293,
+      "maxCorrection": 0.0794968434937493,
+      "maxThrottleCut": 0,
+      "maxRearBrake": 0,
+      "projectedIntervals": 0,
+      "loops": [],
+      "judgments": [],
+      "crashes": 1,
+      "causes": [
+        {
+          "cause": "contact",
+          "s": 36.00037585025848,
+          "time": 0.18124999999999966
+        }
+      ],
+      "riding": true,
+      "airborne": false,
+      "retired": false,
+      "position": [
+        14.558288717255602,
+        -15.899999559455495
+      ],
+      "speed": 1.239835443507522
+    }
+  ],
+  "sportWheelieAidCounterfactual": {
+    "status": "Diagnostic only; no source or retained assist calibration edits",
+    "results": [
+      {
+        "assist": "raw",
+        "hz": 240,
+        "highest": 3.1662297608603116,
+        "maxVy": 5.228038420316106,
+        "maxCorrection": 0.13379221137036038,
+        "maxThrottleCut": 0,
+        "maxRearBrake": 0,
+        "projectedIntervals": 3,
+        "loops": [
+          {
+            "time": 1.8624999999999945,
+            "s": 186.40117967609865,
+            "pitch": 1.2,
+            "pitchRate": 0.7282537591035015,
+            "frontLight": 0.40416666666666645,
+            "frontLoad": 0,
+            "rearLoad": 1475.6665425887586,
+            "noseTorque": 216.87421221798496,
+            "ground": -0.02994729657240971,
+            "relative": 1.2299472965724096,
+            "balanceAngle": 0.6599381988432557,
+            "cgAheadOfRear": -0.6425665157586915,
+            "speed": 6.642660231255434,
+            "vy": -0.061041264053963394,
+            "airborne": false
+          }
+        ],
+        "judgments": [
+          {
+            "time": 0.2416666666666669,
+            "s": 185.87085040422835,
+            "distance": 1.0243192948782298,
+            "takeoffSpeed": 6.348209440334075,
+            "airTime": 0.05208333333333333,
+            "pitchError": 0.1873447334546796,
+            "slope": 0.60029968846759,
+            "normalSpeed": -1.5756267825278147,
+            "yawError": -0.01194717290437217,
+            "lateralSpeed": -0.2833333259724753,
+            "bottomSpeed": 0,
+            "outcome": "clean"
+          },
+          {
+            "time": 1.0575231726950707,
+            "s": 186.01291029254594,
+            "distance": 3.155757137560469,
+            "takeoffSpeed": 6.433395321602405,
+            "airTime": 0.7728009504728497,
+            "pitchError": 1.2014407662033855,
+            "slope": -0.005040383825030631,
+            "normalSpeed": 2.5799352739107935,
+            "yawError": -5.28564043716982e-07,
+            "lateralSpeed": -0.1655722994059233,
+            "bottomSpeed": 0,
+            "outcome": "clean"
+          },
+          {
+            "time": 1.4541666666666626,
+            "s": 186.14259412848594,
+            "distance": 0.5262116110936603,
+            "takeoffSpeed": 5.130944364383227,
+            "airTime": 0.10416666666666666,
+            "pitchError": 1.2114943247138503,
+            "slope": -0.011372045717622776,
+            "normalSpeed": 0.05754127362969186,
+            "yawError": -0.001295379054862859,
+            "lateralSpeed": -0.12789457201480303,
+            "bottomSpeed": 0,
+            "outcome": "clean"
+          }
+        ],
+        "crashes": 1,
+        "causes": [
+          {
+            "cause": "loop-out",
+            "s": 186.40523220819625,
+            "time": 1.8666666666666611
+          }
+        ],
+        "riding": false,
+        "airborne": false,
+        "retired": false,
+        "position": [
+          13.125902777828594,
+          -2.415278467157003
+        ],
+        "speed": 0
+      },
+      {
+        "assist": "sport",
+        "hz": 240,
+        "highest": 3.1490320055370282,
+        "maxVy": 5.228094222848744,
+        "maxCorrection": 0.13098394232698402,
+        "maxThrottleCut": 0,
+        "maxRearBrake": 0,
+        "projectedIntervals": 3,
+        "loops": [
+          {
+            "time": 1.7999999999999947,
+            "s": 186.29263807862947,
+            "pitch": 1.2,
+            "pitchRate": 0.5109762371942075,
+            "frontLight": 0.40416666666666645,
+            "frontLoad": 0,
+            "rearLoad": 1820.5570689117187,
+            "noseTorque": 111.98054602421651,
+            "ground": -0.021653629973319734,
+            "relative": 1.2216536299733196,
+            "balanceAngle": 0.6599381988432557,
+            "cgAheadOfRear": -0.6342303351634945,
+            "speed": 6.145824460934422,
+            "vy": -0.09785632060635327,
+            "airborne": false
+          }
+        ],
+        "judgments": [
+          {
+            "time": 0.2416666666666669,
+            "s": 185.87093794561156,
+            "distance": 1.0198781544239073,
+            "takeoffSpeed": 6.347944225948184,
+            "airTime": 0.05208333333333333,
+            "pitchError": 0.20261083142157,
+            "slope": 0.6019946061460069,
+            "normalSpeed": -1.5665398457382878,
+            "yawError": -0.01536632520411555,
+            "lateralSpeed": -0.2723248321099443,
+            "bottomSpeed": 0,
+            "outcome": "clean"
+          },
+          {
+            "time": 1.049270046060941,
+            "s": 185.99566137379566,
+            "distance": 3.0153475651215342,
+            "takeoffSpeed": 6.339186947430556,
+            "airTime": 0.7645478238387202,
+            "pitchError": 1.2652361377152874,
+            "slope": -0.005236349300508504,
+            "normalSpeed": 2.5120825974352763,
+            "yawError": -8.885797655408327e-07,
+            "lateralSpeed": -0.1305048141257539,
+            "bottomSpeed": 0,
+            "outcome": "clean"
+          },
+          {
+            "time": 1.3916666666666628,
+            "s": 186.08710322056606,
+            "distance": 0.08193012725665819,
+            "takeoffSpeed": 4.948442569284547,
+            "airTime": 0.016666666666666666,
+            "pitchError": 1.2189503794886989,
+            "slope": -0.009767809121660656,
+            "normalSpeed": -0.4599582508046333,
+            "yawError": -0.0013468742905105744,
+            "lateralSpeed": -0.07977396011948076,
+            "bottomSpeed": 0,
+            "outcome": "clean"
+          }
+        ],
+        "crashes": 1,
+        "causes": [
+          {
+            "cause": "loop-out",
+            "s": 186.29579000591798,
+            "time": 1.8041666666666614
+          }
+        ],
+        "riding": false,
+        "airborne": false,
+        "retired": false,
+        "position": [
+          13.330849016605832,
+          -3.406716574634237
+        ],
+        "speed": 0
+      }
+    ]
+  },
+  "loggedRelease": {
+    "hz": 120,
+    "rewindTick": 30,
+    "maximumPoseCorrection": 0.17515892789720777,
+    "crashes": 0,
+    "frameAtRewindEqual": true,
+    "finalFrameEqual": true,
+    "riding": true,
+    "crashCauses": []
+  },
+  "loggedHeld": {
+    "hz": 120,
+    "rewindTick": 30,
+    "maximumPoseCorrection": 0.17515892789720777,
+    "crashes": 1,
+    "frameAtRewindEqual": true,
+    "finalFrameEqual": true,
+    "riding": false,
+    "crashCauses": [
+      {
+        "cause": "loop-out",
+        "s": 186.39397194335857,
+        "time": 1.8541666666666612
+      }
+    ]
+  },
+  "limits": [
+    "The direct whole median approach differs at120Hz versus240/480/960Hz. Existing thresholds and the original240Hz fixture are preserved; cadence-independent verdicts are not claimed.",
+    "Historical diagnostic variants and the interrupted/earlier test runs add no cases to the final29-test total."
+  ]
+}

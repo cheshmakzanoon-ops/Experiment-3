@@ -1,0 +1,621 @@
+{
+  "schemaVersion": 1,
+  "assignment": 50,
+  "generatedAt": "2026-11-25T23:43:41.244239+00:00",
+  "scope": "Read-only exact tracked-tree and materialized-working-file preservation audit; five selected non-MX scenarios, not universal behavioral equivalence.",
+  "refs": {
+    "initial": "f3b39eb8e1b02fc0677086819fc384b6ceacefc2",
+    "upstreamEngine": "39d9d497880e92801a7d77de6af2639b4186bfcc",
+    "integratedMain": "c9c94c7029dbc3e29b18101ef7ccea0a897184d1",
+    "candidate": "b2879248fbce047a299c45b84476adbcc3dbc71f"
+  },
+  "sourceFingerprint": {
+    "files": 1129,
+    "sha256": "a153c34d852b156d5638b2175766e5f22135aa9045af2796cd2e7d9afdd5f9d0"
+  },
+  "allTrackedFileCounts": {
+    "initial": 10432,
+    "upstreamEngine": 10467,
+    "integratedMain": 10545,
+    "candidate": 10640
+  },
+  "upstreamRuntimeChanges": [
+    "src/core/session-identity.ts",
+    "src/rendering/bike.ts",
+    "src/rendering/frame-state.ts",
+    "src/rendering/offroad/chase-camera.ts",
+    "src/rendering/offroad/mx-foot-pose.ts",
+    "src/rendering/offroad/mx-machine-pose.ts",
+    "src/rendering/offroad/mx-rider-pose.ts",
+    "src/rendering/snapshot-interpolation.ts",
+    "src/simulation/offroad/ai.ts",
+    "src/simulation/offroad/air-drag.ts",
+    "src/simulation/offroad/contact-impulse.ts",
+    "src/simulation/offroad/dirt-bike-vehicle.ts",
+    "src/simulation/offroad/mx-gear-stroke.ts",
+    "src/simulation/offroad/mx-ground-physics.ts",
+    "src/simulation/offroad/mx-rider-posture.ts",
+    "src/simulation/offroad/rider-weight.ts",
+    "src/simulation/protocol.ts",
+    "src/simulation/wheel-contact-state.ts"
+  ],
+  "upstreamEngineToIntegratedMainRuntimeChanges": [],
+  "taskChangedRuntimeFiles": [
+    {
+      "path": "src/core/session-identity.ts",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "42eb686997dc45f9baf4a89a5a4aa0c92ee723f0"
+      },
+      "candidate": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b1d5f437320d97ea23dff7ac279ee44b97df6c43"
+      }
+    },
+    {
+      "path": "src/rendering/wheel-pose.ts",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "dcc897f4667509efa751dc0a5f4433039188f11e"
+      },
+      "candidate": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3587ceb6b23dd735808da7d59db236bc78f7cac3"
+      }
+    },
+    {
+      "path": "src/simulation/bike-vehicle.ts",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9635c8c501ad3235734e22de24c7bde1ac642fb4"
+      },
+      "candidate": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8bdd2228ed8d3c70df0aa9411566120cf687556c"
+      }
+    },
+    {
+      "path": "src/simulation/bike.ts",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3e8bcb98120a6200dcb870d4615a93964918b446"
+      },
+      "candidate": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "77d8ebe00066207fb5541de2624def79d7027ea4"
+      }
+    },
+    {
+      "path": "src/simulation/offroad/ai.ts",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "70c059e8af1d96af34e5e2212dc3baf3e072be56"
+      },
+      "candidate": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f4a2eae921a03e900d12f92e1e0e201d54fe34ed"
+      }
+    },
+    {
+      "path": "src/simulation/offroad/contact-impulse.ts",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f55f69ee46d9c5ad5f5e89916fec3a2b3ea96589"
+      },
+      "candidate": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e42184bfdf2f01f75fd4bc0d3e3d9c87223a881a"
+      }
+    },
+    {
+      "path": "src/simulation/offroad/dirt-bike-vehicle.ts",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6fcb9e318947755d39e3934854eca2d91404fa39"
+      },
+      "candidate": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c69cd523fe69791ae51b52e820a199bb42b4b35a"
+      }
+    },
+    {
+      "path": "src/simulation/offroad/mx-ground-physics.ts",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a7ca29d1d87d156c34b15d762e4dc2968f1a700b"
+      },
+      "candidate": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "286395baedee5a870a2428960f351b20bd89fc05"
+      }
+    },
+    {
+      "path": "src/simulation/offroad/session.ts",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "bbc7c40e88605faaa06e2db58a795d6bb6b0ae86"
+      },
+      "candidate": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3c362a1e12c74f9fa9f32db4f1764577c143debd"
+      }
+    }
+  ],
+  "taskChangedTrackedPaths": [
+    "docs/engine/mx-dynamics-2026-11-25/README.md",
+    "docs/engine/mx-dynamics-2026-11-25/agents/01-contact-audit.md",
+    "docs/engine/mx-dynamics-2026-11-25/agents/02-traction-audit.md",
+    "docs/engine/mx-dynamics-2026-11-25/agents/03-motion-audit.md",
+    "docs/engine/mx-dynamics-2026-11-25/agents/04-snapshot-audit.md",
+    "docs/engine/mx-dynamics-2026-11-25/agents/05-lifecycle-audit.md",
+    "docs/engine/mx-dynamics-2026-11-25/agents/06-validation-baseline.md",
+    "docs/engine/mx-dynamics-2026-11-25/agents/07-landing-momentum.md",
+    "docs/engine/mx-dynamics-2026-11-25/agents/08-front-steering.md",
+    "docs/engine/mx-dynamics-2026-11-25/agents/09-rider-blend.md",
+    "docs/engine/mx-dynamics-2026-11-25/agents/10-coupled-stops.md",
+    "docs/engine/mx-dynamics-2026-11-25/agents/11-gate-placement.md",
+    "docs/engine/mx-dynamics-2026-11-25/agents/12-remount-motion.md",
+    "docs/engine/mx-dynamics-2026-11-25/agents/13-contact-integration.md",
+    "docs/engine/mx-dynamics-2026-11-25/agents/14-ridden-lap-diagnosis.md",
+    "docs/engine/mx-dynamics-2026-11-25/agents/15-jump-corridor.md",
+    "docs/engine/mx-dynamics-2026-11-25/agents/16-drive-reserve.md",
+    "docs/engine/mx-dynamics-2026-11-25/agents/17-upstream-contact-review.md",
+    "docs/engine/mx-dynamics-2026-11-25/agents/18-upstream-motion-review.md",
+    "docs/engine/mx-dynamics-2026-11-25/agents/19-wheel-motion-consistency.md",
+    "docs/engine/mx-dynamics-2026-11-25/agents/20-bounded-contact.md",
+    "docs/engine/mx-dynamics-2026-11-25/agents/21-jump-guidance.md",
+    "docs/engine/mx-dynamics-2026-11-25/agents/22-cross-slope.md",
+    "docs/engine/mx-dynamics-2026-11-25/agents/23-remount-handoff.md",
+    "docs/engine/mx-dynamics-2026-11-25/agents/24-slope-momentum.md",
+    "docs/engine/mx-dynamics-2026-11-25/agents/25-launch-traction.md",
+    "docs/engine/mx-dynamics-2026-11-25/agents/26-drive-budget-review.md",
+    "docs/engine/mx-dynamics-2026-11-25/agents/27-planar-transport.md",
+    "docs/engine/mx-dynamics-2026-11-25/agents/28-spring-work.md",
+    "docs/engine/mx-dynamics-2026-11-25/agents/29-brake-budget.md",
+    "docs/engine/mx-dynamics-2026-11-25/agents/30-final-contact-frame.md",
+    "docs/engine/mx-dynamics-2026-11-25/agents/31-ridden-controller.md",
+    "docs/engine/mx-dynamics-2026-11-25/agents/32-contact-work.md",
+    "docs/engine/mx-dynamics-2026-11-25/agents/33-supported-accuracy-data.json",
+    "docs/engine/mx-dynamics-2026-11-25/agents/33-supported-accuracy.md",
+    "docs/engine/mx-dynamics-2026-11-25/agents/34-flight-control.md",
+    "docs/engine/mx-dynamics-2026-11-25/agents/35-rider-acceleration.md",
+    "docs/engine/mx-dynamics-2026-11-25/agents/36-recording-contract.md",
+    "docs/engine/mx-dynamics-2026-11-25/agents/37-coupled-lifecycle.md",
+    "docs/engine/mx-dynamics-2026-11-25/agents/38-landing-oracles.md",
+    "docs/engine/mx-dynamics-2026-11-25/agents/39-contact-oracles.md",
+    "docs/engine/mx-dynamics-2026-11-25/agents/40-ridden-flow.md",
+    "docs/engine/mx-dynamics-2026-11-25/agents/41-contact-time-contract.md",
+    "docs/engine/mx-dynamics-2026-11-25/agents/42-rotor-energy.md",
+    "docs/engine/mx-dynamics-2026-11-25/agents/43-transition-oracles.md",
+    "docs/engine/mx-dynamics-2026-11-25/agents/44-native-browser.md",
+    "docs/engine/mx-dynamics-2026-11-25/agents/45-wheel-pickup-contract.md",
+    "docs/engine/mx-dynamics-2026-11-25/evidence/34-flight-audit.json",
+    "docs/engine/mx-dynamics-2026-11-25/evidence/35-rider-acceleration.json",
+    "docs/engine/mx-dynamics-2026-11-25/evidence/37-coupled-lifecycle.json",
+    "docs/engine/mx-dynamics-2026-11-25/evidence/38-landing-oracles-coupled.json",
+    "docs/engine/mx-dynamics-2026-11-25/evidence/38-landing-oracles-pre33.json",
+    "docs/engine/mx-dynamics-2026-11-25/evidence/40-ridden-flow.json",
+    "docs/engine/mx-dynamics-2026-11-25/evidence/42-rotor-energy.json",
+    "docs/engine/mx-dynamics-2026-11-25/evidence/42-wheel-pickup-counterfactual.json",
+    "docs/engine/mx-dynamics-2026-11-25/evidence/44-native-browser-build.log",
+    "docs/engine/mx-dynamics-2026-11-25/evidence/44-native-browser-install.log",
+    "docs/engine/mx-dynamics-2026-11-25/evidence/44-native-browser-ipc-launch.log",
+    "docs/engine/mx-dynamics-2026-11-25/evidence/44-native-browser-system-launch.log",
+    "docs/engine/mx-dynamics-2026-11-25/evidence/44-native-browser.json",
+    "docs/engine/mx-dynamics-2026-11-25/evidence/45-wheel-pickup-contract.json",
+    "docs/engine/mx-dynamics-2026-11-25/evidence/baseline-focused-tests.log",
+    "docs/engine/mx-dynamics-2026-11-25/evidence/non-mx-baseline.json",
+    "docs/engine/mx-dynamics-2026-11-25/evidence/tsconfig-production.json",
+    "docs/engine/mx-dynamics-2026-11-25/integration.md",
+    "docs/engine/mx-dynamics-2026-11-25/reconciliation.md",
+    "scripts/bench/motocross-landing-oracles.ts",
+    "scripts/bench/motocross-player-dynamics.ts",
+    "scripts/bench/motocross-rider-acceleration.ts",
+    "scripts/bench/motocross-rotor-energy.ts",
+    "scripts/bench/motocross-spring-work.ts",
+    "scripts/bench/mx-dynamics-preservation.ts",
+    "src/core/session-identity.ts",
+    "src/rendering/wheel-pose.ts",
+    "src/simulation/bike-vehicle.ts",
+    "src/simulation/bike.ts",
+    "src/simulation/offroad/ai.ts",
+    "src/simulation/offroad/contact-impulse.ts",
+    "src/simulation/offroad/dirt-bike-vehicle.ts",
+    "src/simulation/offroad/mx-ground-physics.ts",
+    "src/simulation/offroad/session.ts",
+    "tests/motocross-ai.test.ts",
+    "tests/motocross-automatic-shift.test.ts",
+    "tests/motocross-body-transport.test.ts",
+    "tests/motocross-bounded-stops.test.ts",
+    "tests/motocross-brake-budget.test.ts",
+    "tests/motocross-contact-consistency.test.ts",
+    "tests/motocross-contact-time-coherence.test.ts",
+    "tests/motocross-contact-traction.test.ts",
+    "tests/motocross-contact-work-isolation.test.ts",
+    "tests/motocross-coupled-invariants.test.ts",
+    "tests/motocross-coupled-step-contract.test.ts",
+    "tests/motocross-cross-slope.test.ts",
+    "tests/motocross-drive-budget.test.ts",
+    "tests/motocross-drive-reserve.test.ts",
+    "tests/motocross-dynamic-suspension.test.ts",
+    "tests/motocross-final-contact-frame.test.ts",
+    "tests/motocross-front-steering-authority.test.ts",
+    "tests/motocross-gate-placement.test.ts",
+    "tests/motocross-ground-frame-transport.test.ts",
+    "tests/motocross-hard-stop-integration.test.ts",
+    "tests/motocross-jump-corridor.test.ts",
+    "tests/motocross-landing-momentum.test.ts",
+    "tests/motocross-landing-observability.test.ts",
+    "tests/motocross-landing-plan.test.ts",
+    "tests/motocross-landing-prediction.test.ts",
+    "tests/motocross-planar-transport.test.ts",
+    "tests/motocross-player-dynamics.test.ts",
+    "tests/motocross-push-gait.test.ts",
+    "tests/motocross-recovery-replay.test.ts",
+    "tests/motocross-remount-continuity.test.ts",
+    "tests/motocross-remount-handoff.test.ts",
+    "tests/motocross-rider-blending.test.ts",
+    "tests/motocross-rotor-phase-energy.test.ts",
+    "tests/motocross-slope-momentum.test.ts",
+    "tests/motocross-supported-convergence.test.ts",
+    "tests/motocross-test-track.ts",
+    "tests/motocross-wheel-motion-consistency.test.ts",
+    "tests/motocross-wheel-pickup.test.ts",
+    "tests/offroad.test.ts",
+    "tests/session-identity.test.ts"
+  ],
+  "unexpectedTaskChangedPaths": [],
+  "groups": {
+    "allRuntimeExceptTaskNine": {
+      "candidateFiles": 1117,
+      "candidateModeBlobManifestSha256": "e7cc0844bb216961f762e423d94b38889b26ffbf32b0ee3fd584d950a3d178fa",
+      "differenceFromInitial": [
+        "src/rendering/bike.ts",
+        "src/rendering/frame-state.ts",
+        "src/rendering/offroad/chase-camera.ts",
+        "src/rendering/offroad/mx-foot-pose.ts",
+        "src/rendering/offroad/mx-machine-pose.ts",
+        "src/rendering/offroad/mx-rider-pose.ts",
+        "src/rendering/snapshot-interpolation.ts",
+        "src/simulation/offroad/air-drag.ts",
+        "src/simulation/offroad/mx-gear-stroke.ts",
+        "src/simulation/offroad/mx-rider-posture.ts",
+        "src/simulation/offroad/rider-weight.ts",
+        "src/simulation/protocol.ts",
+        "src/simulation/wheel-contact-state.ts"
+      ],
+      "differenceFromIntegratedMain": []
+    },
+    "authoredAssetsAndReferenceRoots": {
+      "candidateFiles": 291,
+      "candidateModeBlobManifestSha256": "ef3ddb65409e05d63fd6945362077aaec24f05781a39f6e165d440729ca41abd",
+      "differenceFromInitial": [],
+      "differenceFromIntegratedMain": [],
+      "allAssetRootDifferencesFromInitialByRef": {
+        "initial": [],
+        "upstreamEngine": [],
+        "integratedMain": [],
+        "candidate": []
+      }
+    },
+    "renderingExceptWheelPose": {
+      "candidateFiles": 714,
+      "candidateModeBlobManifestSha256": "9145f47d6b789216024f0186860d4d204b145e2e08e3f70d5b087d972d7fc975",
+      "differenceFromInitial": [
+        "src/rendering/bike.ts",
+        "src/rendering/frame-state.ts",
+        "src/rendering/offroad/chase-camera.ts",
+        "src/rendering/offroad/mx-foot-pose.ts",
+        "src/rendering/offroad/mx-machine-pose.ts",
+        "src/rendering/offroad/mx-rider-pose.ts",
+        "src/rendering/snapshot-interpolation.ts"
+      ],
+      "differenceFromIntegratedMain": []
+    },
+    "explicitCourseAndVehicleDefinitions": {
+      "candidateFiles": 11,
+      "candidateModeBlobManifestSha256": "b0e7259b42ccbc32b7998f5c109e831c742b0f294862b371f95605a1c21388a3",
+      "differenceFromInitial": [],
+      "differenceFromIntegratedMain": []
+    },
+    "buildAndRuntimeConfiguration": {
+      "candidateFiles": 9,
+      "candidateModeBlobManifestSha256": "0664246f9529a9f1d36a5df2f534e96a5ce183766c7acf2f00e3b41e18b69cd1",
+      "differenceFromInitial": [],
+      "differenceFromIntegratedMain": []
+    },
+    "allTrackedPathsOutsideTaskScope": {
+      "candidateFiles": 9524,
+      "candidateModeBlobManifestSha256": "b65587893ef1c4a2d54ff73e414d6d532e1b89d83a6d0abbd29a4f73f4b2c6c4",
+      "differenceFromInitial": [
+        "ci-reports/benchmark-smoke.md",
+        "ci-reports/build-and-validation.md",
+        "ci-reports/logs/build-and-validation/browser-1.log",
+        "ci-reports/logs/build-and-validation/browser-10.log",
+        "ci-reports/logs/build-and-validation/browser-11.log",
+        "ci-reports/logs/build-and-validation/browser-12.log",
+        "ci-reports/logs/build-and-validation/browser-13.log",
+        "ci-reports/logs/build-and-validation/browser-14.log",
+        "ci-reports/logs/build-and-validation/browser-15.log",
+        "ci-reports/logs/build-and-validation/browser-16.log",
+        "ci-reports/logs/build-and-validation/browser-2.log",
+        "ci-reports/logs/build-and-validation/browser-3.log",
+        "ci-reports/logs/build-and-validation/browser-4.log",
+        "ci-reports/logs/build-and-validation/browser-5.log",
+        "ci-reports/logs/build-and-validation/browser-6.log",
+        "ci-reports/logs/build-and-validation/browser-7.log",
+        "ci-reports/logs/build-and-validation/browser-8.log",
+        "ci-reports/logs/build-and-validation/browser-9.log",
+        "ci-reports/logs/build-and-validation/offroad-scenarios.log",
+        "ci-reports/logs/build-and-validation/owner-qa-1.log",
+        "ci-reports/logs/build-and-validation/owner-qa-2.log",
+        "ci-reports/logs/build-and-validation/owner-qa-3.log",
+        "ci-reports/logs/build-and-validation/owner-qa-4.log",
+        "ci-reports/logs/build-and-validation/unit-tests-1.log",
+        "ci-reports/logs/build-and-validation/unit-tests-3.log",
+        "ci-reports/scenery-shadow-budget.md",
+        "docs/engine/motocross-dynamics-2026-11-25/AGENT_LEDGER.md",
+        "docs/engine/motocross-dynamics-2026-11-25/ARCHITECTURE.md",
+        "docs/engine/motocross-dynamics-2026-11-25/BUILD_PROVENANCE.md",
+        "docs/engine/motocross-dynamics-2026-11-25/CHANGE_COVERAGE.md",
+        "docs/engine/motocross-dynamics-2026-11-25/CHECKPOINTS.md",
+        "docs/engine/motocross-dynamics-2026-11-25/LIMITATIONS.md",
+        "docs/engine/motocross-dynamics-2026-11-25/PLAN.md",
+        "docs/engine/motocross-dynamics-2026-11-25/README.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agent-roster.json",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/01-physics-audit.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/02-motion-audit.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/03-suspension-audit.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/04-transport-audit.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/05-camera-controls-audit.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/06-verification-audit.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/07-coupled-stops.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/08-posture.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/09-camera.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/10-ground-passivity.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/11-snapshot-coherence.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/12-gear-continuity.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/13-suspension-coherence.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/14-reset-lifecycle.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/15-ballistic-integration.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/16-posture-transport.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/17-joint-reversals.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/18-spring-geometry.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/19-landing-observability.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/20-shift-contact.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/21-rider-blending.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/22-air-drag.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/23-body-transport.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/24-camera-motion.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/25-contact-time.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/26-stop-integration.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/27-foot-reconstruction.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/28-supported-accuracy.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/29-replay-motion.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/30-scope-isolation.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/31-legacy-motion-boundary.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/32-live-pose-coherence.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/33-player-scenarios.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/34-integrated-units.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/35-display-cadence.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/36-full-lap-regressions.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/37-native-gameplay.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/38-full-grid-races.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/39-engine-cost.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/40-grid-regression.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/41-recording-contract.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/42-baseline-ci.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/43-physics-review.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/44-motion-review.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/45-protocol-review.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/46-camera-lifecycle.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/47-replay-boundaries.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/48-oracle-review.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/49-final-units.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/50-final-native.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/51-protected-scope.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/52-final-races.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/53-build-provenance.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/54-final-cadence.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/55-final-architecture.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/56-final-handoff.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/57-claims-limitations.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/58-ledger-coverage.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/59-publication-preflight.md",
+        "docs/engine/motocross-dynamics-2026-11-25/agents/60-publication-verification.md",
+        "docs/engine/motocross-dynamics-2026-11-25/evidence/50-final-native.json",
+        "docs/engine/motocross-dynamics-2026-11-25/evidence/51-protected-scope.json",
+        "docs/engine/motocross-dynamics-2026-11-25/evidence/51-protected-scope.py",
+        "docs/engine/motocross-dynamics-2026-11-25/evidence/53-build-provenance.json",
+        "docs/engine/motocross-dynamics-2026-11-25/evidence/54-final-cadence.json",
+        "docs/engine/motocross-dynamics-2026-11-25/evidence/59-publication-preflight.json",
+        "docs/engine/motocross-dynamics-2026-11-25/evidence/60-publication-verification.json",
+        "docs/engine/motocross-dynamics-2026-11-25/evidence/60-verify-publication.py",
+        "src/rendering/bike.ts",
+        "src/rendering/frame-state.ts",
+        "src/rendering/offroad/chase-camera.ts",
+        "src/rendering/offroad/mx-foot-pose.ts",
+        "src/rendering/offroad/mx-machine-pose.ts",
+        "src/rendering/offroad/mx-rider-pose.ts",
+        "src/rendering/snapshot-interpolation.ts",
+        "src/simulation/offroad/air-drag.ts",
+        "src/simulation/offroad/mx-gear-stroke.ts",
+        "src/simulation/offroad/mx-rider-posture.ts",
+        "src/simulation/offroad/rider-weight.ts",
+        "src/simulation/protocol.ts",
+        "src/simulation/wheel-contact-state.ts"
+      ],
+      "differenceFromIntegratedMain": []
+    }
+  },
+  "workingTree": {
+    "protectedPaths": 1417,
+    "materializedVerified": 1381,
+    "materializedModeBlobManifestSha256": "c0789d11a0ae464bbc77475c6bc4339ce6d47815a9c9f46f6e02b43fcf81bf13",
+    "sparseAbsentWithSkipWorktree": 36,
+    "sparsePathManifestSha256": "801a75e5eb4578bffb24f69c2e6aeb2d655c0fe1b829a4131a5fb41dbbed8cdd",
+    "mismatches": [],
+    "extraFilesInProtectedRoots": {
+      "untracked": [],
+      "ignored": []
+    },
+    "method": "Compute Git blob object IDs directly from file bytes or symlink targets plus Git executable/symlink mode. Unmaterialized files must carry skip-worktree and are covered by unchanged complete Git trees."
+  },
+  "protocol": {
+    "path": "src/simulation/protocol.ts",
+    "modeBlobs": {
+      "initial": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "73cefcf24cff63c46616d77f8b94327ccaaad5e3"
+      },
+      "upstreamEngine": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ef3f361fbb429905c871fa3dba5d0a627eaccdc9"
+      },
+      "integratedMain": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ef3f361fbb429905c871fa3dba5d0a627eaccdc9"
+      },
+      "candidate": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ef3f361fbb429905c871fa3dba5d0a627eaccdc9"
+      }
+    },
+    "protocolVersion": 17,
+    "carStride": 331,
+    "taskChange": false,
+    "upstreamChange": "MX_POSTURE and MX_FOOT_TRAJECTORY definitions and reader helper occupy existing zero-mask contact-tail slots; protocol version and stride remain unchanged.",
+    "layoutByRef": {
+      "initial": {
+        "HEADER": 24,
+        "CAR_STRIDE": 331,
+        "PROTOCOL_VERSION": 17
+      },
+      "upstreamEngine": {
+        "HEADER": 24,
+        "CAR_STRIDE": 331,
+        "PROTOCOL_VERSION": 17
+      },
+      "integratedMain": {
+        "HEADER": 24,
+        "CAR_STRIDE": 331,
+        "PROTOCOL_VERSION": 17
+      },
+      "candidate": {
+        "HEADER": 24,
+        "CAR_STRIDE": 331,
+        "PROTOCOL_VERSION": 17
+      }
+    }
+  },
+  "preservation": {
+    "command": [
+      "node",
+      "--max-old-space-size=384",
+      "--experimental-transform-types",
+      "scripts/bench/mx-dynamics-preservation.ts",
+      "--compare",
+      "docs/engine/mx-dynamics-2026-11-25/evidence/non-mx-baseline.json"
+    ],
+    "exitCode": 0,
+    "pass": true,
+    "mismatches": [],
+    "runnerSha256": "b9bb64bb3bf0c3f33aaae2c1b894b3d783f496627881595b289d45fd6f1f0417",
+    "runnerMatchesBaseline": true,
+    "baselineFileSha256": "f719ad80a6dccd33d33e7f7625d2d9f2f98c4124f9d8c079f8210b5c7044ba5c",
+    "inputSha256": "0a729117f5a79f6902ddec7a330748c14be5422eb93489c4f2fc9fe9ea650044",
+    "workload": {
+      "hz": 120,
+      "dt": 0.008333333333333333,
+      "seconds": 10,
+      "steps": 1200,
+      "protocolVersion": 17,
+      "inputSha256": "0a729117f5a79f6902ddec7a330748c14be5422eb93489c4f2fc9fe9ea650044",
+      "description": "One scripted player and one seeded AI opponent per vehicle, Aurel, clear, practice. Initial snapshot and every 120 Hz tick; raw native-endian Float32 bytes concatenated into SHA-256."
+    },
+    "nodeVersion": "v24.22.3",
+    "byteOrder": "LE",
+    "cases": [
+      {
+        "id": "apx01-aurel-clear",
+        "matches": true,
+        "snapshotFloats": 686,
+        "snapshotCount": 1201,
+        "rawBytesHashed": 3295544,
+        "sha256": "0e1a963b4d6ef505e93734d3fa076717ab2ec3b1b61a3e52902600a4b081ebec",
+        "checkpointsCompared": 11,
+        "baselinePhysics": 39,
+        "candidatePhysics": 41
+      },
+      {
+        "id": "gpr1-aurel-clear",
+        "matches": true,
+        "snapshotFloats": 686,
+        "snapshotCount": 1201,
+        "rawBytesHashed": 3295544,
+        "sha256": "caa1ee1bceba1b016b331d5bd9497740dc96338d26544cc81d26a37380e41b56",
+        "checkpointsCompared": 11,
+        "baselinePhysics": 39,
+        "candidatePhysics": 41
+      },
+      {
+        "id": "sbk1000-aurel-clear",
+        "matches": true,
+        "snapshotFloats": 686,
+        "snapshotCount": 1201,
+        "rawBytesHashed": 3295544,
+        "sha256": "67fccf665aaa07b5b529316e8b8f00308e44614fc5634de4a19fea773a922239",
+        "checkpointsCompared": 11,
+        "baselinePhysics": 39,
+        "candidatePhysics": 41
+      },
+      {
+        "id": "sm450-aurel-clear",
+        "matches": true,
+        "snapshotFloats": 686,
+        "snapshotCount": 1201,
+        "rawBytesHashed": 3295544,
+        "sha256": "0a173e5467298367869dbabbd730d367eaaec2b1788432978f175b9d3aa00283",
+        "checkpointsCompared": 11,
+        "baselinePhysics": 39,
+        "candidatePhysics": 41
+      },
+      {
+        "id": "rcx6-aurel-clear",
+        "matches": true,
+        "snapshotFloats": 686,
+        "snapshotCount": 1201,
+        "rawBytesHashed": 3295544,
+        "sha256": "60b324e80ee59b92c2a4b53560bfbb7408506501e4408defa6e5db35fe0d2560",
+        "checkpointsCompared": 11,
+        "baselinePhysics": 39,
+        "candidatePhysics": 41
+      }
+    ],
+    "snapshotsCompared": 6005,
+    "bytesComparedByDigest": 16477720
+  },
+  "pass": true
+}

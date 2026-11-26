@@ -1,0 +1,23 @@
+
+ RUN  v3.2.4 /home/agent/motobound-579b454ae846
+
+ ✓ tests/motocross-contact-traction.test.ts (17 tests) 1073ms
+ ✓ tests/motocross-rider-weight.test.ts (14 tests) 2182ms
+   ✓ independent motocross rider weight > reconstructs and resumes an active rider stroke from the real gate via the input journal  961ms
+ ✓ tests/motocross-ground-physics.test.ts (13 tests) 63ms
+ ✓ tests/motocross-forgiving-handling.test.ts (18 tests) 7218ms
+   ✓ motocross low-speed balance > player at 2 m/s turns and leans toward a held stick  320ms
+   ✓ motocross ridden lap > valley-ridge-mx: the player solver completes a flying lap without a fall or a stall  3794ms
+   ✓ motocross ridden lap > arena-nord-sx: the player solver completes a flying lap without a fall or a stall  2733ms
+ ✓ tests/motocross-machine-animation.test.ts (5 tests) 1610ms
+   ✓ valley-ridge-mx reconstructs the two real suspension strokes between 30 Hz frames  420ms
+   ✓ reconstructs identical elastic tips, rear axle and chain from compact replay after a camera cut  890ms
+ ✓ tests/motocross-snapshot-cadence.test.ts (2 tests) 25701ms
+   ✓ valley-ridge-mx preserves all eight riders and disturbed soil at 30, 60 and 120 Hz snapshot publication  17209ms
+   ✓ arena-nord-sx preserves all eight riders and disturbed soil at 30, 60 and 120 Hz snapshot publication  8490ms
+
+ Test Files  6 passed (6)
+      Tests  69 passed (69)
+   Start at  13:22:00
+   Duration  45.98s (transform 2.59s, setup 0ms, collect 6.59s, tests 37.85s, environment 1ms, prepare 439ms)
+

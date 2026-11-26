@@ -1,0 +1,613 @@
+{
+  "assignment": 54,
+  "wave": 9,
+  "role": "Read-only CI attribution",
+  "observedAtUtc": "2026-11-26T00:08:32Z",
+  "repository": "cheshmakzanoon-ops/Experiment-3",
+  "candidatePublished": false,
+  "liveMain": {
+    "url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/branches/main",
+    "sha": "c9c94c7029dbc3e29b18101ef7ccea0a897184d1",
+    "tree": "5e9fea61ed17d0709a192e2106ef20e161788ffc",
+    "protected": false,
+    "protection": {
+      "enabled": false,
+      "required_status_checks": {
+        "enforcement_level": "off",
+        "contexts": [],
+        "checks": []
+      }
+    }
+  },
+  "rulesets": {
+    "url": "https://api.github.com/repos/cheshmakzanoon-ops/Experiment-3/rulesets?includes_parents=true",
+    "response": []
+  },
+  "baselineRun": {
+    "id": 45700444387,
+    "name": "Build and validation",
+    "headSha": "2578271913c264f5ffd6131afea30723df14b65b",
+    "event": "push",
+    "status": "completed",
+    "conclusion": "failure",
+    "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45700444387",
+    "startedAt": "2026-11-25T21:01:22Z",
+    "updatedAt": "2026-11-25T22:25:02Z"
+  },
+  "baselineJobs": [
+    {
+      "id": 139509039354,
+      "name": "validate",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45700444387/job/139509039354",
+      "failedSteps": []
+    },
+    {
+      "id": 139509039839,
+      "name": "scenarios",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45700444387/job/139509039839",
+      "failedSteps": []
+    },
+    {
+      "id": 139509039864,
+      "name": "offroad-scenarios",
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45700444387/job/139509039864",
+      "failedSteps": [
+        "Full offroad calibrations and races without source changes"
+      ]
+    },
+    {
+      "id": 139509039998,
+      "name": "unit-tests (1)",
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45700444387/job/139509039998",
+      "failedSteps": [
+        "Complete unit-suite partition without source changes"
+      ]
+    },
+    {
+      "id": 139509040034,
+      "name": "unit-tests (4)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45700444387/job/139509040034",
+      "failedSteps": []
+    },
+    {
+      "id": 139509040137,
+      "name": "unit-tests (3)",
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45700444387/job/139509040137",
+      "failedSteps": [
+        "Complete unit-suite partition without source changes"
+      ]
+    },
+    {
+      "id": 139509040166,
+      "name": "unit-tests (2)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45700444387/job/139509040166",
+      "failedSteps": []
+    },
+    {
+      "id": 139510848058,
+      "name": "wet-presentation",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45700444387/job/139510848058",
+      "failedSteps": []
+    },
+    {
+      "id": 139510848172,
+      "name": "owner-qa (4)",
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45700444387/job/139510848172",
+      "failedSteps": [
+        "Owner-only and review-tool specs, plus the owner half of the dual-mode specs"
+      ]
+    },
+    {
+      "id": 139510848180,
+      "name": "owner-qa (3)",
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45700444387/job/139510848180",
+      "failedSteps": [
+        "Owner-only and review-tool specs, plus the owner half of the dual-mode specs"
+      ]
+    },
+    {
+      "id": 139510848199,
+      "name": "owner-qa (2)",
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45700444387/job/139510848199",
+      "failedSteps": [
+        "Owner-only and review-tool specs, plus the owner half of the dual-mode specs"
+      ]
+    },
+    {
+      "id": 139510848287,
+      "name": "owner-qa (1)",
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45700444387/job/139510848287",
+      "failedSteps": [
+        "Owner-only and review-tool specs, plus the owner half of the dual-mode specs"
+      ]
+    },
+    {
+      "id": 139510848328,
+      "name": "browser (6)",
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45700444387/job/139510848328",
+      "failedSteps": [
+        "Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 6/16"
+      ]
+    },
+    {
+      "id": 139510848381,
+      "name": "browser (8)",
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45700444387/job/139510848381",
+      "failedSteps": [
+        "Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 8/16"
+      ]
+    },
+    {
+      "id": 139510848441,
+      "name": "browser (3)",
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45700444387/job/139510848441",
+      "failedSteps": [
+        "Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 3/16"
+      ]
+    },
+    {
+      "id": 139510848462,
+      "name": "browser (4)",
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45700444387/job/139510848462",
+      "failedSteps": [
+        "Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 4/16"
+      ]
+    },
+    {
+      "id": 139510848474,
+      "name": "browser (9)",
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45700444387/job/139510848474",
+      "failedSteps": [
+        "Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 9/16"
+      ]
+    },
+    {
+      "id": 139510848492,
+      "name": "browser (7)",
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45700444387/job/139510848492",
+      "failedSteps": [
+        "Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 7/16"
+      ]
+    },
+    {
+      "id": 139510848527,
+      "name": "browser (12)",
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45700444387/job/139510848527",
+      "failedSteps": [
+        "Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 12/16"
+      ]
+    },
+    {
+      "id": 139510848557,
+      "name": "browser (1)",
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45700444387/job/139510848557",
+      "failedSteps": [
+        "Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 1/16"
+      ]
+    },
+    {
+      "id": 139510848558,
+      "name": "browser (14)",
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45700444387/job/139510848558",
+      "failedSteps": [
+        "Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 14/16"
+      ]
+    },
+    {
+      "id": 139510848561,
+      "name": "browser (16)",
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45700444387/job/139510848561",
+      "failedSteps": [
+        "Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 16/16"
+      ]
+    },
+    {
+      "id": 139510848565,
+      "name": "browser (13)",
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45700444387/job/139510848565",
+      "failedSteps": [
+        "Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 13/16"
+      ]
+    },
+    {
+      "id": 139510848601,
+      "name": "browser (15)",
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45700444387/job/139510848601",
+      "failedSteps": [
+        "Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 15/16"
+      ]
+    },
+    {
+      "id": 139510848641,
+      "name": "browser (11)",
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45700444387/job/139510848641",
+      "failedSteps": [
+        "Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 11/16"
+      ]
+    },
+    {
+      "id": 139510848648,
+      "name": "browser (5)",
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45700444387/job/139510848648",
+      "failedSteps": [
+        "Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 5/16"
+      ]
+    },
+    {
+      "id": 139510848674,
+      "name": "browser (10)",
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45700444387/job/139510848674",
+      "failedSteps": [
+        "Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 10/16"
+      ]
+    },
+    {
+      "id": 139510848849,
+      "name": "browser (2)",
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45700444387/job/139510848849",
+      "failedSteps": [
+        "Run xvfb-run -a -s '-screen 0 1920x1080x24' npm run test:e2e:shard -- 2/16"
+      ]
+    },
+    {
+      "id": 139552014868,
+      "name": "publish",
+      "status": "completed",
+      "conclusion": "skipped",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45700444387/job/139552014868",
+      "failedSteps": []
+    }
+  ],
+  "latestObservedRuns": [
+    {
+      "id": 45713052649,
+      "name": "Deploy MOTOBOUND playable website",
+      "headSha": "b7dcf2ccbb7c45dc7293200a0251a61f5e2b65f2",
+      "status": "completed",
+      "conclusion": "skipped",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45713052649",
+      "updatedAt": "2026-11-25T22:25:09Z"
+    },
+    {
+      "id": 45713052651,
+      "name": "Publish validated playable release",
+      "headSha": "b7dcf2ccbb7c45dc7293200a0251a61f5e2b65f2",
+      "status": "completed",
+      "conclusion": "skipped",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45713052651",
+      "updatedAt": "2026-11-25T22:25:09Z"
+    },
+    {
+      "id": 45713052641,
+      "name": "CI report",
+      "headSha": "b7dcf2ccbb7c45dc7293200a0251a61f5e2b65f2",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45713052641",
+      "updatedAt": "2026-11-25T22:26:17Z"
+    },
+    {
+      "id": 45700521411,
+      "name": "Publish validated playable release",
+      "headSha": "2578271913c264f5ffd6131afea30723df14b65b",
+      "status": "completed",
+      "conclusion": "skipped",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45700521411",
+      "updatedAt": "2026-11-25T21:01:53Z"
+    },
+    {
+      "id": 45700521439,
+      "name": "Deploy MOTOBOUND playable website",
+      "headSha": "2578271913c264f5ffd6131afea30723df14b65b",
+      "status": "completed",
+      "conclusion": "skipped",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45700521439",
+      "updatedAt": "2026-11-25T21:01:53Z"
+    },
+    {
+      "id": 45700521369,
+      "name": "CI report",
+      "headSha": "2578271913c264f5ffd6131afea30723df14b65b",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45700521369",
+      "updatedAt": "2026-11-25T21:02:48Z"
+    },
+    {
+      "id": 45700444387,
+      "name": "Build and validation",
+      "headSha": "2578271913c264f5ffd6131afea30723df14b65b",
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45700444387",
+      "updatedAt": "2026-11-25T22:25:02Z"
+    },
+    {
+      "id": 45698948664,
+      "name": "CI report",
+      "headSha": "6dc4c70515bfde48b27e2794bd97cdf1e1bd681d",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45698948664",
+      "updatedAt": "2026-11-25T20:54:55Z"
+    },
+    {
+      "id": 45698573027,
+      "name": "CI report",
+      "headSha": "39d9d497880e92801a7d77de6af2639b4186bfcc",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45698573027",
+      "updatedAt": "2026-11-25T20:49:41Z"
+    },
+    {
+      "id": 45697808583,
+      "name": "Focused engine runtime validation",
+      "headSha": "39d9d497880e92801a7d77de6af2639b4186bfcc",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45697808583",
+      "updatedAt": "2026-11-25T20:54:33Z"
+    },
+    {
+      "id": 45697808821,
+      "name": "Scenery shadow budget",
+      "headSha": "39d9d497880e92801a7d77de6af2639b4186bfcc",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45697808821",
+      "updatedAt": "2026-11-25T20:51:31Z"
+    },
+    {
+      "id": 45697808594,
+      "name": "Benchmark smoke",
+      "headSha": "39d9d497880e92801a7d77de6af2639b4186bfcc",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/cheshmakzanoon-ops/Experiment-3/actions/runs/45697808594",
+      "updatedAt": "2026-11-25T20:49:11Z"
+    }
+  ],
+  "baselineFailures": [
+    {
+      "test": "tests/apx01-livery.test.ts",
+      "signature": "Player wing material retains turned-alloy where assertion requires its absence.",
+      "job": 139509039998
+    },
+    {
+      "test": "tests/vehicle-catalogue.test.ts",
+      "signature": "GP-R1 calibration stores eca1c71a; current vehicle hash is 5f121c00.",
+      "job": 139509039998
+    },
+    {
+      "test": "tests/i18n.test.ts",
+      "signature": "14 missing translation entries: two GP rear-brake keys in seven dictionaries.",
+      "keys": [
+        "Rear brake (GP motorcycle)",
+        "GP rear brake button (−1 unbound)"
+      ],
+      "locales": [
+        "de",
+        "fr",
+        "es",
+        "pt-BR",
+        "it",
+        "pl",
+        "tr"
+      ],
+      "job": 139509040137
+    },
+    {
+      "test": "tests/vehicle-catalogue-growth.test.ts",
+      "signature": "Frozen GP-R1 hash eca1c71a differs from current 5f121c00.",
+      "job": 139509040137
+    }
+  ],
+  "priorIndependentReproduction": {
+    "source": "docs/engine/motocross-dynamics-2026-11-25/agents/42-baseline-ci.md",
+    "ref": "c9c94c7029dbc3e29b18101ef7ccea0a897184d1",
+    "tests": 52,
+    "passedEach": 48,
+    "failedEach": 4,
+    "scope": "Historical upstream before/after comparison; not executed by assignment54."
+  },
+  "offroad": {
+    "baselineFailure": "event valley-ridge-mx-moto-1: rider 9 crashed 3 times in 4 laps (limit 2)",
+    "baselineCrashEvents": [
+      {
+        "cause": "contact",
+        "s": 518.5,
+        "time": 65
+      },
+      {
+        "cause": "crash-front",
+        "s": 593.8,
+        "time": 182.5
+      },
+      {
+        "cause": "contact",
+        "s": 182.9,
+        "time": 413.4
+      }
+    ],
+    "candidateEvidence": "docs/engine/mx-dynamics-2026-11-25/agents/49-wet-race-regression.md",
+    "candidateExactEvent": "Pass, 10 finishers, 1 total crash, 386.67 s",
+    "scopeLimit": "Candidate 8 full-grid cases plus the exact Valley event are not the entire unchanged default offroad-races matrix executed by CI."
+  },
+  "workflow": {
+    "file": ".github/workflows/ci.yml",
+    "node": "22",
+    "mainPush": true,
+    "concurrency": "ci-${{ github.ref }}, cancel-in-progress:true",
+    "publicationNeeds": [
+      "validate",
+      "unit-tests",
+      "scenarios",
+      "offroad-scenarios",
+      "browser",
+      "wet-presentation",
+      "owner-qa"
+    ],
+    "unitShards": 4,
+    "browserShards": 16,
+    "ownerQaShards": 4,
+    "offroadCommand": "OFFROAD_RACE unset; original offroad-calibration.ts and default offroad-races.ts",
+    "separatePublishWorkflowsRequire": "Successful Build and validation workflow_run for main."
+  },
+  "localProof": {
+    "currentLocalHead": "b2879248fbce047a299c45b84476adbcc3dbc71f",
+    "sourceFingerprint": "4c041cb338d0fa480e0514ee905137a24061494b98b9899949238f6b137be790",
+    "sourceFileCount": 1129,
+    "baselineToIntegratedMainChangedPaths": [
+      "ci-reports/build-and-validation.md",
+      "ci-reports/logs/build-and-validation/browser-1.log",
+      "ci-reports/logs/build-and-validation/browser-10.log",
+      "ci-reports/logs/build-and-validation/browser-11.log",
+      "ci-reports/logs/build-and-validation/browser-12.log",
+      "ci-reports/logs/build-and-validation/browser-13.log",
+      "ci-reports/logs/build-and-validation/browser-14.log",
+      "ci-reports/logs/build-and-validation/browser-15.log",
+      "ci-reports/logs/build-and-validation/browser-16.log",
+      "ci-reports/logs/build-and-validation/browser-2.log",
+      "ci-reports/logs/build-and-validation/browser-3.log",
+      "ci-reports/logs/build-and-validation/browser-4.log",
+      "ci-reports/logs/build-and-validation/browser-5.log",
+      "ci-reports/logs/build-and-validation/browser-6.log",
+      "ci-reports/logs/build-and-validation/browser-7.log",
+      "ci-reports/logs/build-and-validation/browser-8.log",
+      "ci-reports/logs/build-and-validation/browser-9.log",
+      "ci-reports/logs/build-and-validation/offroad-scenarios.log",
+      "ci-reports/logs/build-and-validation/owner-qa-1.log",
+      "ci-reports/logs/build-and-validation/owner-qa-2.log",
+      "ci-reports/logs/build-and-validation/owner-qa-3.log",
+      "ci-reports/logs/build-and-validation/owner-qa-4.log",
+      "ci-reports/logs/build-and-validation/unit-tests-1.log",
+      "ci-reports/logs/build-and-validation/unit-tests-3.log"
+    ],
+    "unchangedFailingTests": [
+      {
+        "path": "tests/apx01-livery.test.ts",
+        "baselineSha256": "a898931af8fe43e031636b8d25dca2cc4dc1fb3cf935cf29a0cc27009c41dd8d",
+        "currentSha256": "a898931af8fe43e031636b8d25dca2cc4dc1fb3cf935cf29a0cc27009c41dd8d",
+        "exact": true
+      },
+      {
+        "path": "tests/vehicle-catalogue.test.ts",
+        "baselineSha256": "1c20f21d3cc14d19e6f64003da5afe3fe46548aa141a346001b1f4d2943657c8",
+        "currentSha256": "1c20f21d3cc14d19e6f64003da5afe3fe46548aa141a346001b1f4d2943657c8",
+        "exact": true
+      },
+      {
+        "path": "tests/vehicle-catalogue-growth.test.ts",
+        "baselineSha256": "562fa26e2fb1009a32ffb00b7e572046152058afc9e8d63ef72db997c222e332",
+        "currentSha256": "562fa26e2fb1009a32ffb00b7e572046152058afc9e8d63ef72db997c222e332",
+        "exact": true
+      },
+      {
+        "path": "tests/i18n.test.ts",
+        "baselineSha256": "bf84722bc1c023bf74a7d942ae99078601dc1d6ca10e3f6526c174f6495ee515",
+        "currentSha256": "bf84722bc1c023bf74a7d942ae99078601dc1d6ca10e3f6526c174f6495ee515",
+        "exact": true
+      }
+    ],
+    "contentCanonicalVehicleHashBlock": {
+      "exact": true,
+      "baselineSha256": "61361fc4404bd4e60d70b67e54332d6cb8d919acde422733e3759f49e6fb948d",
+      "currentSha256": "61361fc4404bd4e60d70b67e54332d6cb8d919acde422733e3759f49e6fb948d"
+    },
+    "readEvidence": [
+      {
+        "path": "ci-reports/build-and-validation.md",
+        "ref": "c9c94c7029dbc3e29b18101ef7ccea0a897184d1",
+        "sha256": "7db23ebe57276bae9b0286068f0fbacb46ac8cd1d232236b7b2892d91a79267e"
+      },
+      {
+        "path": "ci-reports/logs/build-and-validation/unit-tests-1.log",
+        "ref": "c9c94c7029dbc3e29b18101ef7ccea0a897184d1",
+        "sha256": "079bfdcb6c7ea18fd46c39d6285808f3022420c9659e9ec20406f33f7d308995"
+      },
+      {
+        "path": "ci-reports/logs/build-and-validation/unit-tests-3.log",
+        "ref": "c9c94c7029dbc3e29b18101ef7ccea0a897184d1",
+        "sha256": "faea1714b0a9b27341e16bbc71bc7f78923217340b4675e0cd37e58590d3a7d6"
+      },
+      {
+        "path": "ci-reports/logs/build-and-validation/offroad-scenarios.log",
+        "ref": "c9c94c7029dbc3e29b18101ef7ccea0a897184d1",
+        "sha256": "e703d03914fffddc662f881b153866fb8df42abb70c8d40eaaec3345084a252b"
+      },
+      {
+        "path": "docs/engine/motocross-dynamics-2026-11-25/agents/42-baseline-ci.md",
+        "ref": "c9c94c7029dbc3e29b18101ef7ccea0a897184d1",
+        "sha256": "5e3ee74218dd78101c9aea78e6225075878553858b729941300fc1891d600323"
+      }
+    ]
+  },
+  "limits": [
+    "No new candidate hosted-CI result exists yet.",
+    "No global unit suite was rerun here.",
+    "Baseline browser/owner-QA job failures were observed but their individual root causes were not re-diagnosed.",
+    "Local44browser launch was blocked before a page; no visual/GPU acceptance follows from source publication.",
+    "Branch update authorization and CI release acceptance are distinct."
+  ],
+  "changedFiles": [
+    "docs/engine/mx-dynamics-2026-11-25/agents/54-ci-attribution.md",
+    "docs/engine/mx-dynamics-2026-11-25/evidence/54-ci-attribution.json"
+  ]
+}
